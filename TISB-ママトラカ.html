@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ママトラカ">
+<meta name="application-name" content="TISB ママトラカ">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20180%20180%22%3E%3Crect%20width%3D%22180%22%20height%3D%22180%22%20rx%3D%2240%22%20fill%3D%22%2316212e%22/%3E%3Crect%20x%3D%2230%22%20y%3D%2252%22%20width%3D%22120%22%20height%3D%2272%22%20rx%3D%2214%22%20fill%3D%22%23f5b400%22/%3E%3Crect%20x%3D%2242%22%20y%3D%2264%22%20width%3D%2226%22%20height%3D%2222%22%20rx%3D%224%22%20fill%3D%22%2316212e%22/%3E%3Crect%20x%3D%2277%22%20y%3D%2264%22%20width%3D%2226%22%20height%3D%2222%22%20rx%3D%224%22%20fill%3D%22%2316212e%22/%3E%3Crect%20x%3D%22112%22%20y%3D%2264%22%20width%3D%2226%22%20height%3D%2222%22%20rx%3D%224%22%20fill%3D%22%2316212e%22/%3E%3Ccircle%20cx%3D%2260%22%20cy%3D%22126%22%20r%3D%2212%22%20fill%3D%22%2316212e%22/%3E%3Ccircle%20cx%3D%22120%22%20cy%3D%22126%22%20r%3D%2212%22%20fill%3D%22%2316212e%22/%3E%3Ctext%20x%3D%2290%22%20y%3D%2242%22%20font-family%3D%22Arial%2Csans-serif%22%20font-size%3D%2222%22%20font-weight%3D%22700%22%20fill%3D%22%23f5b400%22%20text-anchor%3D%22middle%22%3ETISB%3C/text%3E%3Ctext%20x%3D%2290%22%20y%3D%22166%22%20font-family%3D%22sans-serif%22%20font-size%3D%2220%22%20font-weight%3D%22700%22%20fill%3D%22%23eef1ea%22%20text-anchor%3D%22middle%22%3E%E3%83%9E%E3%83%9E%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20180%20180%22%3E%3Crect%20width%3D%22180%22%20height%3D%22180%22%20rx%3D%2240%22%20fill%3D%22%2316212e%22/%3E%3Crect%20x%3D%2230%22%20y%3D%2252%22%20width%3D%22120%22%20height%3D%2272%22%20rx%3D%2214%22%20fill%3D%22%23f5b400%22/%3E%3Crect%20x%3D%2242%22%20y%3D%2264%22%20width%3D%2226%22%20height%3D%2222%22%20rx%3D%224%22%20fill%3D%22%2316212e%22/%3E%3Crect%20x%3D%2277%22%20y%3D%2264%22%20width%3D%2226%22%20height%3D%2222%22%20rx%3D%224%22%20fill%3D%22%2316212e%22/%3E%3Crect%20x%3D%22112%22%20y%3D%2264%22%20width%3D%2226%22%20height%3D%2222%22%20rx%3D%224%22%20fill%3D%22%2316212e%22/%3E%3Ccircle%20cx%3D%2260%22%20cy%3D%22126%22%20r%3D%2212%22%20fill%3D%22%2316212e%22/%3E%3Ccircle%20cx%3D%22120%22%20cy%3D%22126%22%20r%3D%2212%22%20fill%3D%22%2316212e%22/%3E%3Ctext%20x%3D%2290%22%20y%3D%2242%22%20font-family%3D%22Arial%2Csans-serif%22%20font-size%3D%2222%22%20font-weight%3D%22700%22%20fill%3D%22%23f5b400%22%20text-anchor%3D%22middle%22%3ETISB%3C/text%3E%3Ctext%20x%3D%2290%22%20y%3D%22166%22%20font-family%3D%22sans-serif%22%20font-size%3D%2220%22%20font-weight%3D%22700%22%20fill%3D%22%23eef1ea%22%20text-anchor%3D%22middle%22%3E%E3%83%9E%E3%83%9E%3C/text%3E%3C/svg%3E">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%20%22TISB%20%E3%83%9E%E3%83%9E%E3%83%88%E3%83%A9%E3%82%AB%22%2C%20%22short_name%22%3A%20%22%E3%83%9E%E3%83%9E%E3%83%88%E3%83%A9%E3%82%AB%22%2C%20%22display%22%3A%20%22standalone%22%2C%20%22background_color%22%3A%20%22%2316212e%22%2C%20%22theme_color%22%3A%20%22%2316212e%22%2C%20%22start_url%22%3A%20%22.%22%2C%20%22icons%22%3A%20%5B%7B%22src%22%3A%20%22data%3Aimage/svg%2Bxml%2C%253Csvg%2520xmlns%253D%2522http%253A//www.w3.org/2000/svg%2522%2520viewBox%253D%25220%25200%2520180%2520180%2522%253E%253Crect%2520width%253D%2522180%2522%2520height%253D%2522180%2522%2520rx%253D%252240%2522%2520fill%253D%2522%252316212e%2522/%253E%253Crect%2520x%253D%252230%2522%2520y%253D%252252%2522%2520width%253D%2522120%2522%2520height%253D%252272%2522%2520rx%253D%252214%2522%2520fill%253D%2522%2523f5b400%2522/%253E%253Crect%2520x%253D%252242%2522%2520y%253D%252264%2522%2520width%253D%252226%2522%2520height%253D%252222%2522%2520rx%253D%25224%2522%2520fill%253D%2522%252316212e%2522/%253E%253Crect%2520x%253D%252277%2522%2520y%253D%252264%2522%2520width%253D%252226%2522%2520height%253D%252222%2522%2520rx%253D%25224%2522%2520fill%253D%2522%252316212e%2522/%253E%253Crect%2520x%253D%2522112%2522%2520y%253D%252264%2522%2520width%253D%252226%2522%2520height%253D%252222%2522%2520rx%253D%25224%2522%2520fill%253D%2522%252316212e%2522/%253E%253Ccircle%2520cx%253D%252260%2522%2520cy%253D%2522126%2522%2520r%253D%252212%2522%2520fill%253D%2522%252316212e%2522/%253E%253Ccircle%2520cx%253D%2522120%2522%2520cy%253D%2522126%2522%2520r%253D%252212%2522%2520fill%253D%2522%252316212e%2522/%253E%253Ctext%2520x%253D%252290%2522%2520y%253D%252242%2522%2520font-family%253D%2522Arial%252Csans-serif%2522%2520font-size%253D%252222%2522%2520font-weight%253D%2522700%2522%2520fill%253D%2522%2523f5b400%2522%2520text-anchor%253D%2522middle%2522%253ETISB%253C/text%253E%253Ctext%2520x%253D%252290%2522%2520y%253D%2522166%2522%2520font-family%253D%2522sans-serif%2522%2520font-size%253D%252220%2522%2520font-weight%253D%2522700%2522%2520fill%253D%2522%2523eef1ea%2522%2520text-anchor%253D%2522middle%2522%253E%25E3%2583%259E%25E3%2583%259E%253C/text%253E%253C/svg%253E%22%2C%20%22sizes%22%3A%20%22any%22%2C%20%22type%22%3A%20%22image/svg%2Bxml%22%7D%5D%7D">
+<meta name="theme-color" content="#16212e">
+<title>TISB ママトラカ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=M+PLUS+Rounded+1c:wght@700&family=Public+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root{
+  --ink:#16212e; --ink-2:#4a5a6c; --paper:#f4f5f0; --card:#ffffff; --line:#dfe2da;
+  --bus:#f5b400; --bus-ink:#3a2a00; --go:#2f8a5b; --warn:#c9800a; --stop:#cc4436; --sky:#2f6fb2;
+  --shadow:0 1px 2px rgba(22,33,46,.08),0 6px 20px rgba(22,33,46,.08);
+  --disp:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --ink:#eef1ea; --ink-2:#9fb0c2; --paper:#0f1822; --card:#172331; --line:#253447;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.3); color-scheme:dark;}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--paper);color:var(--ink);font:15px/1.45 var(--body);display:flex;flex-direction:column;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+button,input,select{font:inherit;color:inherit}
+header{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--ink);color:var(--paper)}
+@media (prefers-color-scheme:dark){header{background:#0a1118;color:var(--ink)}}
+.plate{font:700 20px/1 var(--disp);letter-spacing:.04em;background:var(--bus);color:var(--bus-ink);padding:5px 8px 4px;border-radius:4px}
+header .who{flex:1;min-width:0}
+header .who b{display:block;font:600 16px/1.1 var(--disp);letter-spacing:.06em;text-transform:uppercase}
+header .who span{font-size:12px;opacity:.75}
+header .who #unitName{opacity:1}
+.brand{font:700 19px/1.1 "M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif!important;letter-spacing:.06em!important;text-transform:none!important}
+.chip{font-size:12px;font-weight:600;padding:4px 9px;border-radius:99px;white-space:nowrap;background:rgba(255,255,255,.12)}
+.chip.live{background:var(--go);color:#fff}.chip.stale{background:var(--warn);color:#fff}.chip.off{background:var(--stop);color:#fff}.chip.demo{background:var(--sky);color:#fff}
+#map{flex:1 1 auto;min-height:38vh;background:#cfd6cc}
+.panel{background:var(--card);border-top:1px solid var(--line);box-shadow:var(--shadow);padding:14px 16px 16px;display:grid;gap:14px}
+.eta{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.eta .big{font:700 64px/.85 var(--disp);font-variant-numeric:tabular-nums}
+.eta .big small{font-size:26px;margin-left:4px;color:var(--ink-2)}
+.eta .meta{display:grid;gap:2px;font-size:13px;color:var(--ink-2);padding-bottom:4px}
+.eta .meta b{color:var(--ink);font-variant-numeric:tabular-nums}
+.ladder{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.step{border:1px solid var(--line);border-radius:8px;padding:7px 8px;font-size:12px;line-height:1.25}
+.step b{display:block;font:700 15px/1.1 var(--disp);letter-spacing:.04em;text-transform:uppercase}
+.step.done{background:var(--go);border-color:var(--go);color:#fff}
+.step.next{border-color:var(--bus);box-shadow:inset 0 0 0 1px var(--bus)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 14px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+.btn.primary{background:var(--bus);border-color:var(--bus);color:var(--bus-ink)}
+.btn.armed{background:var(--go);border-color:var(--go);color:#fff}
+.btn.grow{flex:1;justify-content:center}
+.note{font-size:12px;color:var(--ink-2)}
+#toast{position:fixed;left:16px;right:16px;top:calc(env(safe-area-inset-top,0px) + 64px);z-index:2000;background:var(--stop);color:#fff;
+  padding:14px 16px;border-radius:12px;font-weight:700;box-shadow:var(--shadow);font-size:17px}
+/* settings sheet */
+dialog{border:0;border-radius:16px;padding:0;width:min(560px,calc(100% - 24px));max-height:88vh;background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+dialog::backdrop{background:rgba(10,17,24,.55)}
+.sheet{padding:18px 18px 20px;display:grid;gap:18px;overflow:auto;max-height:88vh}
+.sheet h2{margin:0;font:700 24px/1 var(--disp);letter-spacing:.04em;text-transform:uppercase}
+fieldset{border:1px solid var(--line);border-radius:12px;padding:12px 14px 14px;margin:0;display:grid;gap:10px}
+legend{font:700 14px var(--disp);letter-spacing:.08em;text-transform:uppercase;padding:0 6px;color:var(--ink-2)}
+label{display:grid;gap:4px;font-size:13px;font-weight:600}
+input,select{border:1px solid var(--line);border-radius:8px;padding:9px 10px;background:var(--paper);width:100%;min-width:0;font-weight:400}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.leaflet-container{font-family:var(--body)}
+.busicon{font-size:30px;line-height:1;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+.homeicon{font-size:28px;line-height:1;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+@media (min-width:900px){
+  body{display:grid;grid-template-columns:1fr 420px;grid-template-rows:auto 1fr}
+  header{grid-column:1/-1}
+  #map{min-height:0}
+  .panel{border-top:0;border-left:1px solid var(--line);align-content:start;overflow:auto}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <span class="plate">TISB</span>
+  <div class="who"><b class="brand">ママトラカ</b><span id="subline">R03 · <span id="unitName">KA 51 D 3270</span></span></div>
+  <span id="status" class="chip">Not connected</span>
+</header>
+
+<div id="map" role="application" aria-label="Map of bus and home"></div>
+
+<section class="panel">
+  <div class="eta">
+    <div class="big" id="etaBig">--<small>min</small></div>
+    <div class="meta">
+      <span>From home <b id="dist">--</b></span>
+      <span>Speed <b id="speed">--</b></span>
+      <span>Last GPS fix <b id="fix">--</b></span>
+    </div>
+  </div>
+
+  <div class="ladder" aria-label="Trip progress">
+    <div class="step" id="st-school"><b>Left TISB</b><span id="st-school-t">waiting</span></div>
+    <div class="step" id="st-10"><b>10 min</b><span id="st-10-t">waiting</span></div>
+    <div class="step" id="st-5"><b>5 min</b><span id="st-5-t">waiting</span></div>
+    <div class="step" id="st-home"><b>At gate</b><span id="st-home-t">waiting</span></div>
+  </div>
+
+  <div class="row">
+    <button class="btn primary grow" id="armBtn" type="button">🔔 Turn on alerts</button>
+    <button class="btn" id="settingsBtn" type="button">⚙︎ Setup</button>
+  </div>
+  <div class="row">
+    <a class="btn grow" id="gmBus" target="_blank" rel="noopener">📍 Bus in Google Maps</a>
+    <a class="btn grow" id="gmRoute" target="_blank" rel="noopener">🧭 Route bus → home</a>
+  </div>
+  <div class="row">
+    <button class="btn grow" id="demoBtn" type="button">▶ Run a demo trip</button>
+    <button class="btn grow" id="fitBtn" type="button">⤢ Show bus & home</button>
+  </div>
+  <p class="note" id="hint">To use it like an app on iPhone: open in Safari → Share → Add to Home Screen. Keep it open with the screen on during bus times. For alerts on a locked phone, add an ntfy topic in Setup and leave this page running on a laptop or spare phone at home.</p>
+</section>
+
+<div id="toast" hidden></div>
+
+<dialog id="sheet">
+  <form class="sheet" id="form" method="dialog">
+    <h2>ママトラカ Setup</h2>
+
+    <fieldset>
+      <legend>1 · Connect to the bus</legend>
+      <p class="note" style="margin:0">Uses the same parent login as the Cpark GPS360 app. Tap <b>Sign in with Cpark</b>, log in, and the key is filled in automatically. If a window doesn't open, sign in at the Cpark page, then paste the <code>access_token</code> value from the address bar.</p>
+      <div class="row"><button class="btn primary grow" type="button" id="oauthBtn">Sign in with Cpark</button></div>
+      <label for="token">Access key (token)<input id="token" autocomplete="off" placeholder="72-character key"></label>
+      <div class="two">
+        <label for="portal">Login page<input id="portal" value="https://gps360.cpark.in"></label>
+        <label for="api">Data server<input id="api" value="https://hst-api.wialon.com"></label>
+      </div>
+      <label for="unitMask">Bus name contains<input id="unitMask" value="3270"></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>2 · Home and school</legend>
+      <p class="note" style="margin:0">Paste a Google Maps link or coordinates (in Google Maps, long-press your gate and copy the numbers). You can also drag the 🏠 pin on the map.</p>
+      <label for="homeIn">Home location<input id="homeIn" placeholder="12.9001, 77.7012 or maps.google.com link or an address"></label>
+      <div class="row"><button class="btn grow" type="button" id="homeSet">Set home</button><button class="btn grow" type="button" id="homeTap">Tap map to place</button></div>
+      <label for="schoolIn">School (TISB)<input id="schoolIn" value="12.891681, 77.749808"></label>
+      <label for="schoolR">School zone radius (metres)<input id="schoolR" type="number" min="100" max="2000" step="50" value="400"></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>3 · Alerts</legend>
+      <div class="two">
+        <label for="avg">Typical bus speed (km/h)<input id="avg" type="number" min="8" max="50" value="20"></label>
+        <label for="road">Road winding factor<input id="road" type="number" min="1" max="2" step="0.05" value="1.35"></label>
+      </div>
+      <div class="two">
+        <label for="amFrom">Morning from<input id="amFrom" type="time" value="06:00"></label>
+        <label for="amTo">Morning to<input id="amTo" type="time" value="09:30"></label>
+        <label for="pmFrom">Afternoon from<input id="pmFrom" type="time" value="13:00"></label>
+        <label for="pmTo">Afternoon to<input id="pmTo" type="time" value="18:00"></label>
+      </div>
+      <label for="days">Alert days<select id="days"><option value="mon-sat">Monday – Saturday</option><option value="mon-fri">Monday – Friday</option><option value="all">Every day</option></select></label>
+      <label for="ntfy">ntfy topic for phone push (optional)<input id="ntfy" placeholder="e.g. tisb-r03-yourname-4821"></label>
+      <p class="note" style="margin:0">Install the free <b>ntfy</b> app on each parent's phone and subscribe to the same topic. Pick a hard-to-guess name: anyone who knows it can read the alerts.</p>
+      <div class="row"><button class="btn grow" type="button" id="testBtn">Send a test alert</button></div>
+    </fieldset>
+
+    <div class="row">
+      <button class="btn primary grow" value="save" id="saveBtn">Save & connect</button>
+      <button class="btn" value="cancel" formnovalidate>Close</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+(() => {
+"use strict";
+const $ = id => document.getElementById(id);
+const store = {
+  get(){ try{return JSON.parse(localStorage.getItem("busWatch")||"{}")}catch(e){return {}} },
+  set(v){ try{localStorage.setItem("busWatch",JSON.stringify(v))}catch(e){} }
+};
+const DEF = {
+  token:"", portal:"https://gps360.cpark.in", api:"https://hst-api.wialon.com", unitMask:"3270",
+  home:null, school:[12.891681,77.749808], schoolR:400, avg:20, road:1.35,
+  amFrom:"06:00", amTo:"09:30", pmFrom:"13:00", pmTo:"18:00", days:"mon-sat", ntfy:""
+};
+let S = Object.assign({}, DEF, store.get());
+const save = () => store.set(S);
+
+/* ---------- map ---------- */
+const map = L.map("map",{zoomControl:true,attributionControl:true}).setView(S.school,14);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map);
+const icon = (cls,t) => L.divIcon({className:"",html:`<div class="${cls}">${t}</div>`,iconSize:[34,34],iconAnchor:[17,17]});
+const busM = L.marker(S.school,{icon:icon("busicon","🚌"),zIndexOffset:1000});
+const homeM = L.marker(S.school,{icon:icon("homeicon","🏠"),draggable:true});
+const schoolM = L.circle(S.school,{radius:S.schoolR,color:"#2f6fb2",weight:2,fillOpacity:.08}).addTo(map).bindTooltip("TISB zone");
+const ring10 = L.circle(S.school,{radius:1,color:"#c9800a",weight:2,dashArray:"6 6",fillOpacity:.04});
+const ring5  = L.circle(S.school,{radius:1,color:"#cc4436",weight:2,dashArray:"6 6",fillOpacity:.06});
+const trail = L.polyline([],{color:"#f5b400",weight:5,opacity:.85}).addTo(map);
+homeM.on("dragend",()=>{const p=homeM.getLatLng(); setHome([p.lat,p.lng]);});
+
+let tapMode=false;
+map.on("click",e=>{ if(!tapMode) return; tapMode=false; setHome([e.latlng.lat,e.latlng.lng]); flash("Home pin set"); });
+
+function kmPerMin(){ return (S.avg/60)/S.road; } // straight-line km covered per minute
+function drawZones(){
+  schoolM.setLatLng(S.school).setRadius(S.schoolR);
+  if(!S.home){ [homeM,ring10,ring5].forEach(l=>map.removeLayer(l)); return; }
+  homeM.setLatLng(S.home).addTo(map);
+  ring10.setLatLng(S.home).setRadius(kmPerMin()*10*1000).addTo(map).bindTooltip("≈10 min away");
+  ring5.setLatLng(S.home).setRadius(kmPerMin()*5*1000).addTo(map).bindTooltip("≈5 min away");
+}
+function setHome(ll){ S.home=[+ll[0].toFixed(6),+ll[1].toFixed(6)]; save(); drawZones(); $("homeIn").value=S.home.join(", "); render(); }
+
+/* ---------- geometry ---------- */
+function hav(a,b){ const R=6371,r=Math.PI/180,dLa=(b[0]-a[0])*r,dLo=(b[1]-a[1])*r;
+  const h=Math.sin(dLa/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dLo/2)**2; return 2*R*Math.asin(Math.sqrt(h)); }
+function parseLL(s){
+  if(!s) return null; s=String(s);
+  let m=s.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)||s.match(/[?&](?:q|query|ll|destination)=(-?\d+\.\d+),\s*(-?\d+\.\d+)/)||s.match(/(-?\d{1,2}\.\d{3,})\s*,\s*(-?\d{1,3}\.\d{3,})/);
+  return m?[+m[1],+m[2]]:null;
+}
+async function geocode(q){
+  const r=await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=in&q="+encodeURIComponent(q));
+  const j=await r.json(); return j[0]?[+j[0].lat,+j[0].lon]:null;
+}
+
+/* ---------- Wialon (Cpark) connection ---------- */
+let sid=null, unitId=null, pollT=null, demo=null;
+async function call(svc,params){
+  const body="params="+encodeURIComponent(JSON.stringify(params||{}))+(sid?"&sid="+sid:"");
+  const r=await fetch(S.api.replace(/\/$/,"")+"/wialon/ajax.html?svc="+svc,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body});
+  const j=await r.json();
+  if(j && j.error){ const e=new Error("Wialon error "+j.error); e.code=j.error; throw e; }
+  return j;
+}
+async function connect(){
+  stopDemo();
+  if(!S.token){ setStatus("off","No access key"); return; }
+  setStatus("","Connecting…");
+  try{
+    sid=null;
+    const lg=await call("token/login",{token:S.token,fl:1});
+    sid=lg.eid;
+    await poll(true);
+    clearInterval(pollT); pollT=setInterval(()=>poll(false),15000);
+  }catch(e){
+    sid=null;
+    setStatus("off", e.code===4||e.code===8 ? "Key rejected – sign in again" : "Can't reach server");
+    $("hint").textContent = e.code ? "The access key was refused. Open Setup and tap Sign in with Cpark to get a fresh one."
+      : "Couldn't reach the tracking server. Check the internet connection, or try Data server https://hst-api.wialon.eu in Setup.";
+  }
+}
+async function poll(first){
+  try{
+    const res=await call("core/search_items",{spec:{itemsType:"avl_unit",propName:"sys_name",propValueMask:"*",sortType:"sys_name"},force:1,flags:1025,from:0,to:0});
+    const items=res.items||[];
+    let u=items.find(i=>S.unitMask && i.nm && i.nm.includes(S.unitMask))||items[0];
+    if(!u){ setStatus("off","No bus on this login"); return; }
+    unitId=u.id; $("unitName").textContent=u.nm.replace(/^\(.*?\)\s*/,"");
+    if(!u.pos){ setStatus("stale","No position yet"); return; }
+    update({lat:u.pos.y,lng:u.pos.x,spd:u.pos.s,t:u.pos.t,sats:u.pos.sc},first);
+  }catch(e){
+    if(e.code===1){ sid=null; connect(); return; } // session expired
+    setStatus("off","Connection lost – retrying");
+  }
+}
+
+/* ---------- state + alerts ---------- */
+let bus=null, trip={school:null,t10:null,t5:null,home:null,wasInSchool:false}, lastLL=null;
+function update(p,fit){
+  const ll=[p.lat,p.lng];
+  bus=p;
+  busM.setLatLng(ll).addTo(map);
+  if(!lastLL || hav(lastLL,ll)>0.01){ trail.addLatLng(ll); if(trail.getLatLngs().length>400) trail.setLatLngs(trail.getLatLngs().slice(-400)); lastLL=ll; }
+  const age=(Date.now()/1000-p.t)/60;
+  if(demo) setStatus("demo","Demo trip");
+  else if(age>10) setStatus("stale","Last signal "+ago(p.t));
+  else setStatus("live","Live");
+  checkAlerts(ll,age);
+  render();
+  if(fit) fitAll();
+}
+function inWindow(){
+  const d=new Date(), dow=d.getDay();
+  if(S.days==="mon-sat"&&dow===0) return false;
+  if(S.days==="mon-fri"&&(dow===0||dow===6)) return false;
+  const hm=d.toTimeString().slice(0,5);
+  return (hm>=S.amFrom&&hm<=S.amTo)||(hm>=S.pmFrom&&hm<=S.pmTo);
+}
+function etaMin(ll){ return S.home? hav(ll,S.home)*S.road/S.avg*60 : null; }
+function checkAlerts(ll,ageMin){
+  if(ageMin>15 && !demo) return;            // don't alert on old positions
+  const now=Date.now(), dS=hav(ll,S.school)*1000, eta=etaMin(ll), dH=S.home?hav(ll,S.home)*1000:Infinity;
+  const inSchool=dS<=S.schoolR;
+  if(inSchool || (eta!==null && eta>20)){ // reset for the next approach
+    if(inSchool) trip.wasInSchool=true;
+    if(trip.t10||trip.t5||trip.home) trip={school:null,t10:null,t5:null,home:null,wasInSchool:inSchool};
+  }
+  const on = demo || inWindow();
+  if(trip.wasInSchool && !inSchool && !trip.school){ trip.school=now; trip.wasInSchool=false; if(on) alertOut("🚌 Bus has left TISB","Heading out now"+(eta?` · about ${Math.round(eta)} min from home`:"")); }
+  if(eta===null) return;
+  if(eta<=10 && !trip.t10 && dH>300){ trip.t10=now; if(on) alertOut("🚌 Bus is ~10 minutes away",fmtKm(dH/1000)+" from home"); }
+  if(eta<=5 && !trip.t5 && dH>300){ trip.t10=trip.t10||now; trip.t5=now; if(on) alertOut("🚌 Bus is ~5 minutes away – head out",fmtKm(dH/1000)+" from home"); }
+  if(dH<=300 && !trip.home){ trip.t10=trip.t10||now; trip.t5=trip.t5||now; trip.home=now; if(on) alertOut("🚌 Bus is at your gate","Within 300 m of home"); }
+}
+
+let armed=false, actx=null, wake=null;
+function beep(){
+  if(!actx) return;
+  [0,0.35,0.7].forEach((o,i)=>{ const os=actx.createOscillator(), g=actx.createGain();
+    os.frequency.value=i===2?988:784; os.type="sine"; g.gain.setValueAtTime(0.0001,actx.currentTime+o);
+    g.gain.exponentialRampToValueAtTime(0.4,actx.currentTime+o+0.02); g.gain.exponentialRampToValueAtTime(0.0001,actx.currentTime+o+0.3);
+    os.connect(g).connect(actx.destination); os.start(actx.currentTime+o); os.stop(actx.currentTime+o+0.32); });
+}
+function alertOut(title,msg){
+  flash(title+" — "+msg, true);
+  if(armed){ beep(); try{navigator.vibrate&&navigator.vibrate([300,150,300,150,600])}catch(e){}
+    try{ if("speechSynthesis" in window) speechSynthesis.speak(new SpeechSynthesisUtterance(title.replace(/[^\w\s~–-]/g,""))); }catch(e){} }
+  try{ if("Notification" in window && Notification.permission==="granted") new Notification(title,{body:msg,tag:"bus"}); }catch(e){}
+  if(S.ntfy){
+    fetch("https://ntfy.sh/"+encodeURIComponent(S.ntfy)+"?t="+encodeURIComponent("ママトラカ: "+title.replace(/^\W+/,""))+"&p=5&tags=bus",{method:"POST",body:msg}).catch(()=>{});
+  }
+}
+async function arm(){
+  armed=!armed;
+  const b=$("armBtn");
+  if(armed){
+    try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)(); await actx.resume(); }catch(e){}
+    try{ if("Notification" in window && Notification.permission==="default") await Notification.requestPermission(); }catch(e){}
+    try{ if("wakeLock" in navigator) wake=await navigator.wakeLock.request("screen"); }catch(e){}
+    b.textContent="🔔 Alerts on · screen kept awake"; b.classList.add("armed"); b.classList.remove("primary"); beep();
+  }else{
+    try{ wake&&wake.release(); }catch(e){} wake=null;
+    b.textContent="🔔 Turn on alerts"; b.classList.remove("armed"); b.classList.add("primary");
+  }
+}
+document.addEventListener("visibilitychange",async()=>{ if(armed&&document.visibilityState==="visible"&&"wakeLock" in navigator){ try{wake=await navigator.wakeLock.request("screen")}catch(e){} } });
+
+/* ---------- rendering ---------- */
+const fmtKm = k => k<1 ? Math.round(k*1000)+" m" : k.toFixed(1)+" km";
+const hm = t => new Date(t).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"});
+function ago(ts){ const m=Math.round((Date.now()/1000-ts)/60); if(m<1) return "just now"; if(m<60) return m+" min ago"; const h=Math.floor(m/60); return h<24? h+" h "+(m%60)+" min ago" : new Date(ts*1000).toLocaleString([], {day:"numeric",month:"short",hour:"numeric",minute:"2-digit"}); }
+function setStatus(cls,txt){ const s=$("status"); s.className="chip "+cls; s.textContent=txt; }
+function render(){
+  const eta = bus&&S.home ? etaMin([bus.lat,bus.lng]) : null;
+  $("etaBig").innerHTML = eta===null ? "--<small>min</small>" : (eta<1?"<1":Math.round(eta))+"<small>min</small>";
+  $("dist").textContent = bus&&S.home ? fmtKm(hav([bus.lat,bus.lng],S.home)) : (S.home?"--":"set home in Setup");
+  $("speed").textContent = bus ? Math.round(bus.spd)+" km/h"+(bus.spd<3?" (stopped)":"") : "--";
+  $("fix").textContent = bus ? ago(bus.t) : "--";
+  const steps=[["st-school",trip.school],["st-10",trip.t10],["st-5",trip.t5],["st-home",trip.home]];
+  let nextSet=false;
+  steps.forEach(([id,t])=>{ const el=$(id); el.classList.toggle("done",!!t); el.classList.remove("next");
+    if(!t&&!nextSet){ el.classList.add("next"); nextSet=true; } $(id+"-t").textContent = t? hm(t) : "waiting"; });
+  if(bus){ $("gmBus").href=`https://www.google.com/maps/search/?api=1&query=${bus.lat},${bus.lng}`; }
+  else { $("gmBus").href=`https://www.google.com/maps/search/?api=1&query=${S.school.join(",")}`; }
+  const orig = bus?`${bus.lat},${bus.lng}`:S.school.join(",");
+  $("gmRoute").href = S.home ? `https://www.google.com/maps/dir/?api=1&origin=${orig}&destination=${S.home.join(",")}&travelmode=driving` : $("gmBus").href;
+}
+let toastT=null;
+function flash(t,big){ const el=$("toast"); el.textContent=t; el.style.background=big?"var(--stop)":"var(--ink)"; el.style.color=big?"#fff":"var(--paper)"; el.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>el.hidden=true, big?12000:2500); }
+function fitAll(){ const pts=[S.school]; if(S.home) pts.push(S.home); if(bus) pts.push([bus.lat,bus.lng]); map.fitBounds(L.latLngBounds(pts).pad(0.25),{maxZoom:16}); }
+
+/* ---------- demo trip ---------- */
+function stopDemo(){ if(demo){ clearInterval(demo); demo=null; } }
+function runDemo(){
+  clearInterval(pollT); stopDemo();
+  if(!S.home){ setHome([S.school[0]+0.045, S.school[1]-0.03]); flash("Demo home placed ~6 km from TISB. Set your real home in Setup."); }
+  trip={school:null,t10:null,t5:null,home:null,wasInSchool:false}; trail.setLatLngs([]); lastLL=null;
+  const a=S.school, b=S.home, mid=[(a[0]+b[0])/2+0.008,(a[1]+b[1])/2-0.006];
+  const pts=[]; for(let i=0;i<=120;i++){ const t=i/120, u=1-t; pts.push([u*u*a[0]+2*u*t*mid[0]+t*t*b[0], u*u*a[1]+2*u*t*mid[1]+t*t*b[1]]); }
+  let i=0; update({lat:a[0],lng:a[1],spd:0,t:Date.now()/1000},true);
+  demo=setInterval(()=>{ i++; if(i>=pts.length){ stopDemo(); flash("Demo finished. Tap Save & connect in Setup for the real bus."); if(sid) pollT=setInterval(()=>poll(false),15000); return; }
+    update({lat:pts[i][0],lng:pts[i][1],spd:24,t:Date.now()/1000},false); },500);
+}
+
+/* ---------- setup sheet ---------- */
+const F=["token","portal","api","unitMask","schoolR","avg","road","amFrom","amTo","pmFrom","pmTo","days","ntfy"];
+function openSheet(){ F.forEach(k=>$(k).value=S[k]); $("homeIn").value=S.home?S.home.join(", "):""; $("schoolIn").value=S.school.join(", "); $("sheet").showModal(); }
+$("settingsBtn").onclick=openSheet;
+$("form").addEventListener("submit",async e=>{
+  if(e.submitter&&e.submitter.value!=="save") return;
+  F.forEach(k=>{ const v=$(k).value.trim(); S[k]= ["schoolR","avg","road"].includes(k)? (+v||DEF[k]) : v; });
+  const sc=parseLL($("schoolIn").value); if(sc) S.school=sc;
+  const hv=$("homeIn").value.trim(); if(hv){ const h=parseLL(hv); if(h) S.home=h; }
+  save(); drawZones(); render(); connect();
+});
+$("homeSet").onclick=async()=>{
+  const v=$("homeIn").value.trim(); if(!v) return;
+  let ll=parseLL(v);
+  if(!ll){ try{ ll=await geocode(v); }catch(e){} }
+  if(ll){ setHome(ll); map.setView(ll,15); flash("Home set"); } else flash("Couldn't read that. Paste coordinates like 12.9001, 77.7012");
+};
+$("homeTap").onclick=()=>{ tapMode=true; $("sheet").close(); flash("Tap your gate on the map"); };
+$("testBtn").onclick=()=>{ S.ntfy=$("ntfy").value.trim(); save(); alertOut("🚌 Test alert","If you can read this, alerts are working"); };
+$("oauthBtn").onclick=()=>{
+  const portal=$("portal").value.trim().replace(/\/$/,"");
+  const url=portal+"/login.html?client_id=TISBMamaTracker&access_type=0x100&activation_time=0&duration=0&flags=0x1&redirect_uri="+encodeURIComponent(portal+"/post_token.html");
+  const w=window.open(url,"cparklogin","width=480,height=640");
+  if(!w) location.href=url;
+};
+window.addEventListener("message",e=>{
+  const m=e.data; if(typeof m!=="string"||m.indexOf("access_token=")<0) return;
+  const tok=(m.match(/access_token=([^&]+)/)||[])[1]; if(!tok) return;
+  S.token=tok; save(); $("token").value=tok; flash("Signed in. Tap Save & connect.");
+});
+// token pasted as full URL
+$("token").addEventListener("change",()=>{ const v=$("token").value; const m=v.match(/access_token=([^&\s]+)/); if(m) $("token").value=m[1]; });
+
+$("armBtn").onclick=arm;
+$("demoBtn").onclick=runDemo;
+$("fitBtn").onclick=fitAll;
+
+/* ---------- boot ---------- */
+drawZones(); render(); fitAll();
+if(S.token) connect(); else { setStatus("off","Not connected"); setTimeout(openSheet,400); }
+setInterval(render,30000);
+})();
+</script>
+</body>
+</html>
