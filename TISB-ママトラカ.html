@@ -233,45 +233,53 @@ async function geocode(q){
   const j=await r.json(); return j[0]?[+j[0].lat,+j[0].lon]:null;
 }
 
-/* ---------- Wialon (Cpark) connection ---------- */
-let sid=null, unitId=null, pollT=null, demo=null;
-async function call(svc,params){
-  const body="params="+encodeURIComponent(JSON.stringify(params||{}))+(sid?"&sid="+sid:"");
-  const r=await fetch(S.api.replace(/\/$/,"")+"/wialon/ajax.html?svc="+svc,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body});
-  const j=await r.json();
-  if(j && j.error){ const e=new Error("Wialon error "+j.error); e.code=j.error; throw e; }
-  return j;
+/* ---------- Wialon (Cpark) connection via official Wialon browser SDK ---------- */
+let sid=null, unitId=null, pollT=null, demo=null, sess=null, unitObj=null, sdkP=null;
+function loadSDK(){
+  if(window.wialon) return Promise.resolve();
+  if(sdkP) return sdkP;
+  sdkP=new Promise((res,rej)=>{ const sc=document.createElement("script");
+    sc.src=S.api.replace(/\/$/,"")+"/wsdk/script/wialon.js"; sc.onload=()=>res(); sc.onerror=()=>{sdkP=null;rej(new Error("sdk"))};
+    document.head.appendChild(sc); });
+  return sdkP;
 }
+function fail(msg,hint){ sid=null; setStatus("off",msg); $("hint").textContent=hint; }
 async function connect(){
   stopDemo();
   if(!S.token){ setStatus("off","No access key"); return; }
   setStatus("","Connecting…");
-  try{
-    sid=null;
-    const lg=await call("token/login",{token:S.token,fl:1});
-    sid=lg.eid;
-    await poll(true);
-    clearInterval(pollT); pollT=setInterval(()=>poll(false),15000);
-  }catch(e){
-    sid=null;
-    setStatus("off", e.code===4||e.code===8 ? "Key rejected – sign in again" : "Can't reach server");
-    $("hint").textContent = e.code ? "The access key was refused. Open Setup and tap Sign in with Cpark to get a fresh one."
-      : "Couldn't reach the tracking server. Check the internet connection, or try Data server https://hst-api.wialon.eu in Setup.";
+  try{ await loadSDK(); }catch(e){
+    return fail("Can't reach server","Couldn't load the tracking service. Check the internet connection and reload. If it keeps failing, try Data server https://hst-api.wialon.eu in Setup, then reload.");
   }
+  try{
+    if(!sess){ sess=wialon.core.Session.getInstance(); sess.initSession(S.api.replace(/\/$/,"")); }
+    if(sess.getCurrUser && sess.getCurrUser()){ return afterLogin(); }
+    sess.loginToken(S.token,"",code=>{
+      if(code){ return fail("Key rejected – sign in again","The access key was refused (code "+code+"). Open Setup, tap Sign in with Cpark, then Save & connect."); }
+      afterLogin();
+    });
+  }catch(e){ fail("Can't reach server","Tracking service error: "+e.message); }
 }
-async function poll(first){
-  try{
-    const res=await call("core/search_items",{spec:{itemsType:"avl_unit",propName:"sys_name",propValueMask:"*",sortType:"sys_name"},force:1,flags:1025,from:0,to:0});
-    const items=res.items||[];
-    let u=items.find(i=>S.unitMask && i.nm && i.nm.includes(S.unitMask))||items[0];
-    if(!u){ setStatus("off","No bus on this login"); return; }
-    unitId=u.id; $("unitName").textContent=u.nm.replace(/^\(.*?\)\s*/,"");
-    if(!u.pos){ setStatus("stale","No position yet"); return; }
-    update({lat:u.pos.y,lng:u.pos.x,spd:u.pos.s,t:u.pos.t,sats:u.pos.sc},first);
-  }catch(e){
-    if(e.code===1){ sid=null; connect(); return; } // session expired
-    setStatus("off","Connection lost – retrying");
-  }
+function afterLogin(){
+  sid=sess.getId? sess.getId() : "ok";
+  const flags=wialon.item.Item.dataFlag.base|wialon.item.Unit.dataFlag.lastMessage;
+  sess.updateDataFlags([{type:"type",data:"avl_unit",flags:flags,mode:0}],code=>{
+    if(code) return fail("Can't load the bus","Logged in, but the bus list failed (code "+code+").");
+    const units=sess.getItems("avl_unit")||[];
+    unitObj=units.find(u=>S.unitMask && u.getName().includes(S.unitMask))||units[0];
+    if(!unitObj) return fail("No bus on this login","This login has no vehicles. Check Bus name in Setup.");
+    unitId=unitObj.getId();
+    $("unitName").textContent=unitObj.getName().replace(/^\(.*?\)\s*/,"");
+    unitObj.addListener("changePosition",()=>{ if(!demo) poll(false); });
+    poll(true);
+    clearInterval(pollT); pollT=setInterval(()=>poll(false),15000);
+  });
+}
+function poll(first){
+  if(!unitObj) return;
+  const pos=unitObj.getPosition();
+  if(!pos){ setStatus("stale","No position yet"); return; }
+  update({lat:pos.y,lng:pos.x,spd:pos.s||0,t:pos.t,sats:pos.sc},first);
 }
 
 /* ---------- state + alerts ---------- */
