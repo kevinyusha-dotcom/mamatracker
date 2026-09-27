@@ -87,30 +87,42 @@ input,select{border:1px solid var(--line);border-radius:8px;padding:9px 10px;bac
 </style>
 </head>
 <body>
+<style>
+.eta .src{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:99px;background:var(--line);color:var(--ink-2)}
+.eta .src.g{background:var(--go);color:#fff}
+.eta .src.r{background:var(--sky);color:#fff}
+.trip{font-size:13px;color:var(--ink-2)}
+.trip b{color:var(--ink)}
+.ladder{grid-template-columns:repeat(auto-fit,minmax(60px,1fr))}
+.step b{font-size:14px}
+a.btn{color:var(--ink)}
+.al{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;font-size:14px;font-weight:600}
+.al input[type=checkbox]{width:22px;height:22px;accent-color:var(--go)}
+.al input[type=number]{width:74px;text-align:center}
+.al .u{font-weight:400;color:var(--ink-2);font-size:13px}
+.stopicon{font-size:26px;line-height:1;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+</style>
+
 <header>
   <span class="plate">TISB</span>
   <div class="who"><b class="brand">ママトラカ</b><span id="subline">R03 · <span id="unitName">KA 51 D 3270</span></span></div>
   <span id="status" class="chip">Not connected</span>
 </header>
 
-<div id="map" role="application" aria-label="Map of bus and home"></div>
+<div id="map" role="application" aria-label="Map of bus and stops"></div>
 
 <section class="panel">
+  <div class="trip" id="tripLine">Morning pickup · <b>La Casa stop</b></div>
   <div class="eta">
     <div class="big" id="etaBig">--<small>min</small></div>
     <div class="meta">
-      <span>From home <b id="dist">--</b></span>
-      <span>Speed <b id="speed">--</b></span>
-      <span>Last GPS fix <b id="fix">--</b></span>
+      <span><span class="src" id="etaSrc">estimate</span></span>
+      <span>To stop <b id="dist">--</b></span>
+      <span>Speed <b id="speed">--</b> · GPS <b id="fix">--</b></span>
     </div>
   </div>
 
-  <div class="ladder" aria-label="Trip progress">
-    <div class="step" id="st-school"><b>Left TISB</b><span id="st-school-t">waiting</span></div>
-    <div class="step" id="st-10"><b>10 min</b><span id="st-10-t">waiting</span></div>
-    <div class="step" id="st-5"><b>5 min</b><span id="st-5-t">waiting</span></div>
-    <div class="step" id="st-home"><b>At gate</b><span id="st-home-t">waiting</span></div>
-  </div>
+  <div class="ladder" id="ladder" aria-label="Alerts for this trip"></div>
 
   <div class="row">
     <button class="btn primary grow" id="armBtn" type="button">🔔 Turn on alerts</button>
@@ -118,13 +130,13 @@ input,select{border:1px solid var(--line);border-radius:8px;padding:9px 10px;bac
   </div>
   <div class="row">
     <a class="btn grow" id="gmBus" target="_blank" rel="noopener">📍 Bus in Google Maps</a>
-    <a class="btn grow" id="gmRoute" target="_blank" rel="noopener">🧭 Route bus → home</a>
+    <a class="btn grow" id="gmRoute" target="_blank" rel="noopener">🧭 Live traffic route</a>
   </div>
   <div class="row">
     <button class="btn grow" id="demoBtn" type="button">▶ Run a demo trip</button>
-    <button class="btn grow" id="fitBtn" type="button">⤢ Show bus & home</button>
+    <button class="btn grow" id="fitBtn" type="button">⤢ Show bus & stop</button>
   </div>
-  <p class="note" id="hint">To use it like an app on iPhone: open in Safari → Share → Add to Home Screen. Keep it open with the screen on during bus times. For alerts on a locked phone, add an ntfy topic in Setup and leave this page running on a laptop or spare phone at home.</p>
+  <p class="note" id="hint">iPhone: open in Safari → Share → Add to Home Screen. Keep ママトラカ open with alerts on during bus times. For alerts on a locked phone, add an ntfy topic in Setup.</p>
 </section>
 
 <div id="toast" hidden></div>
@@ -135,7 +147,7 @@ input,select{border:1px solid var(--line);border-radius:8px;padding:9px 10px;bac
 
     <fieldset>
       <legend>1 · Connect to the bus</legend>
-      <p class="note" style="margin:0">Uses the same parent login as the Cpark GPS360 app. Tap <b>Sign in with Cpark</b>, log in, and the key is filled in automatically. If a window doesn't open, sign in at the Cpark page, then paste the <code>access_token</code> value from the address bar.</p>
+      <p class="note" style="margin:0">Uses the parent login from the Cpark GPS360 app. Tap <b>Sign in with Cpark</b>, log in, and the key fills in. If no window opens, sign in, then paste the <code>access_token</code> value from the address bar here.</p>
       <div class="row"><button class="btn primary grow" type="button" id="oauthBtn">Sign in with Cpark</button></div>
       <label for="token">Access key (token)<input id="token" autocomplete="off" placeholder="72-character key"></label>
       <div class="two">
@@ -146,20 +158,26 @@ input,select{border:1px solid var(--line);border-radius:8px;padding:9px 10px;bac
     </fieldset>
 
     <fieldset>
-      <legend>2 · Home and school</legend>
-      <p class="note" style="margin:0">Paste a Google Maps link or coordinates (in Google Maps, long-press your gate and copy the numbers). You can also drag the 🏠 pin on the map.</p>
-      <label for="homeIn">Home location<input id="homeIn" placeholder="12.9001, 77.7012 or maps.google.com link or an address"></label>
-      <div class="row"><button class="btn grow" type="button" id="homeSet">Set home</button><button class="btn grow" type="button" id="homeTap">Tap map to place</button></div>
-      <label for="schoolIn">School (TISB)<input id="schoolIn" value="12.891681, 77.749808"></label>
-      <label for="schoolR">School zone radius (metres)<input id="schoolR" type="number" min="100" max="2000" step="50" value="400"></label>
+      <legend>2 · Stops</legend>
+      <p class="note" style="margin:0">Paste a Google Maps link, coordinates (long-press the spot in Google Maps and copy the numbers) or an address. Or tap <b>Place on map</b>.</p>
+      <label for="amStopIn">Morning pickup stop<input id="amStopIn" placeholder="12.904261, 77.675845"></label>
+      <div class="row"><button class="btn grow" type="button" data-set="am">Set</button><button class="btn grow" type="button" data-tap="am">Place on map</button></div>
+      <label for="pmStopIn">Afternoon drop stop <span class="note">(leave empty = same as morning)</span><input id="pmStopIn" placeholder="same as morning"></label>
+      <div class="row"><button class="btn grow" type="button" data-set="pm">Set</button><button class="btn grow" type="button" data-tap="pm">Place on map</button></div>
+      <div class="two">
+        <label for="schoolIn">School (TISB)<input id="schoolIn" value="12.891681, 77.749808"></label>
+        <label for="schoolR">School zone (m)<input id="schoolR" type="number" min="100" max="2000" step="50" value="400"></label>
+      </div>
     </fieldset>
 
     <fieldset>
-      <legend>3 · Alerts</legend>
-      <div class="two">
-        <label for="avg">Typical bus speed (km/h)<input id="avg" type="number" min="8" max="50" value="20"></label>
-        <label for="road">Road winding factor<input id="road" type="number" min="1" max="2" step="0.05" value="1.35"></label>
-      </div>
+      <legend>3 · Which alerts</legend>
+      <p class="note" style="margin:0">Each alert fires once per morning and once per afternoon, however the bus loops around.</p>
+      <label class="al" for="aLeft"><input type="checkbox" id="aLeft" checked><span>Bus left TISB <span class="u">(afternoon)</span></span><span></span></label>
+      <label class="al" for="a1on"><input type="checkbox" id="a1on" checked><span>Alert when bus is</span><span><input type="number" id="a1min" min="1" max="60" value="15" aria-label="minutes"> <span class="u">min away</span></span></label>
+      <label class="al" for="a2on"><input type="checkbox" id="a2on" checked><span>Alert when bus is</span><span><input type="number" id="a2min" min="1" max="60" value="10" aria-label="minutes"> <span class="u">min away</span></span></label>
+      <label class="al" for="a3on"><input type="checkbox" id="a3on" checked><span>Alert when bus is</span><span><input type="number" id="a3min" min="1" max="60" value="5" aria-label="minutes"> <span class="u">min away</span></span></label>
+      <label class="al" for="aArr"><input type="checkbox" id="aArr" checked><span>Bus reached the stop</span><span><input type="number" id="arrM" min="50" max="1000" step="50" value="200" aria-label="metres"> <span class="u">m</span></span></label>
       <div class="two">
         <label for="amFrom">Morning from<input id="amFrom" type="time" value="06:00"></label>
         <label for="amTo">Morning to<input id="amTo" type="time" value="09:30"></label>
@@ -167,8 +185,22 @@ input,select{border:1px solid var(--line);border-radius:8px;padding:9px 10px;bac
         <label for="pmTo">Afternoon to<input id="pmTo" type="time" value="18:00"></label>
       </div>
       <label for="days">Alert days<select id="days"><option value="mon-sat">Monday – Saturday</option><option value="mon-fri">Monday – Friday</option><option value="all">Every day</option></select></label>
-      <label for="ntfy">ntfy topic for phone push (optional)<input id="ntfy" placeholder="e.g. tisb-r03-yourname-4821"></label>
-      <p class="note" style="margin:0">Install the free <b>ntfy</b> app on each parent's phone and subscribe to the same topic. Pick a hard-to-guess name: anyone who knows it can read the alerts.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>4 · Arrival time & traffic</legend>
+      <p class="note" style="margin:0">Without a Google key, ママトラカ uses the real road route (OpenStreetMap) and adds your traffic factor. With a Google Maps key it uses Google's live-traffic time, the same number Google Maps shows.</p>
+      <label for="gkey">Google Maps API key (optional)<input id="gkey" autocomplete="off" placeholder="AIza…"></label>
+      <div class="two">
+        <label for="traffic">Traffic factor<select id="traffic"><option value="1.2">Light ×1.2</option><option value="1.4">Normal ×1.4</option><option value="1.7">Heavy ×1.7</option><option value="2">Very heavy ×2</option></select></label>
+        <label for="avg">Fallback speed (km/h)<input id="avg" type="number" min="8" max="50" value="18"></label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>5 · Phone push (optional)</legend>
+      <label for="ntfy">ntfy topic<input id="ntfy" placeholder="e.g. tisb-r03-yourname-4821"></label>
+      <p class="note" style="margin:0">Install the free <b>ntfy</b> app, subscribe to the same topic, and alerts arrive even with the phone locked (while ママトラカ runs on one device). Pick a hard-to-guess name.</p>
       <div class="row"><button class="btn grow" type="button" id="testBtn">Send a test alert</button></div>
     </fieldset>
 
@@ -187,54 +219,108 @@ const store = {
   get(){ try{return JSON.parse(localStorage.getItem("busWatch")||"{}")}catch(e){return {}} },
   set(v){ try{localStorage.setItem("busWatch",JSON.stringify(v))}catch(e){} }
 };
+const LACASA=[12.904261,77.675845];
 const DEF = {
   token:"", portal:"https://gps360.cpark.in", api:"https://hst-api.wialon.com", unitMask:"3270",
-  home:null, school:[12.891681,77.749808], schoolR:400, avg:20, road:1.35,
-  amFrom:"06:00", amTo:"09:30", pmFrom:"13:00", pmTo:"18:00", days:"mon-sat", ntfy:""
+  amStop:LACASA, pmStop:null, school:[12.891681,77.749808], schoolR:400,
+  aLeft:true, a1on:true, a1min:15, a2on:true, a2min:10, a3on:true, a3min:5, aArr:true, arrM:200,
+  amFrom:"06:00", amTo:"09:30", pmFrom:"13:00", pmTo:"18:00", days:"mon-sat",
+  gkey:"", traffic:1.4, avg:18, road:1.35, ntfy:""
 };
 let S = Object.assign({}, DEF, store.get());
+if(S.home && !store.get().amStop){ S.amStop=S.home; } delete S.home; // migrate v1/v2
 const save = () => store.set(S);
-
-/* ---------- map ---------- */
-const map = L.map("map",{zoomControl:true,attributionControl:true}).setView(S.school,14);
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map);
-const icon = (cls,t) => L.divIcon({className:"",html:`<div class="${cls}">${t}</div>`,iconSize:[34,34],iconAnchor:[17,17]});
-const busM = L.marker(S.school,{icon:icon("busicon","🚌"),zIndexOffset:1000});
-const homeM = L.marker(S.school,{icon:icon("homeicon","🏠"),draggable:true});
-const schoolM = L.circle(S.school,{radius:S.schoolR,color:"#2f6fb2",weight:2,fillOpacity:.08}).addTo(map).bindTooltip("TISB zone");
-const ring10 = L.circle(S.school,{radius:1,color:"#c9800a",weight:2,dashArray:"6 6",fillOpacity:.04});
-const ring5  = L.circle(S.school,{radius:1,color:"#cc4436",weight:2,dashArray:"6 6",fillOpacity:.06});
-const trail = L.polyline([],{color:"#f5b400",weight:5,opacity:.85}).addTo(map);
-homeM.on("dragend",()=>{const p=homeM.getLatLng(); setHome([p.lat,p.lng]);});
-
-let tapMode=false;
-map.on("click",e=>{ if(!tapMode) return; tapMode=false; setHome([e.latlng.lat,e.latlng.lng]); flash("Home pin set"); });
-
-function kmPerMin(){ return (S.avg/60)/S.road; } // straight-line km covered per minute
-function drawZones(){
-  schoolM.setLatLng(S.school).setRadius(S.schoolR);
-  if(!S.home){ [homeM,ring10,ring5].forEach(l=>map.removeLayer(l)); return; }
-  homeM.setLatLng(S.home).addTo(map);
-  ring10.setLatLng(S.home).setRadius(kmPerMin()*10*1000).addTo(map).bindTooltip("≈10 min away");
-  ring5.setLatLng(S.home).setRadius(kmPerMin()*5*1000).addTo(map).bindTooltip("≈5 min away");
-}
-function setHome(ll){ S.home=[+ll[0].toFixed(6),+ll[1].toFixed(6)]; save(); drawZones(); $("homeIn").value=S.home.join(", "); render(); }
 
 /* ---------- geometry ---------- */
 function hav(a,b){ const R=6371,r=Math.PI/180,dLa=(b[0]-a[0])*r,dLo=(b[1]-a[1])*r;
   const h=Math.sin(dLa/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dLo/2)**2; return 2*R*Math.asin(Math.sqrt(h)); }
 function parseLL(s){
   if(!s) return null; s=String(s);
-  let m=s.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)||s.match(/[?&](?:q|query|ll|destination)=(-?\d+\.\d+),\s*(-?\d+\.\d+)/)||s.match(/(-?\d{1,2}\.\d{3,})\s*,\s*(-?\d{1,3}\.\d{3,})/);
+  const m=s.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)||s.match(/[?&](?:q|query|ll|destination)=(-?\d+\.\d+),\s*(-?\d+\.\d+)/)||s.match(/(-?\d{1,2}\.\d{3,})\s*,\s*(-?\d{1,3}\.\d{3,})/);
   return m?[+m[1],+m[2]]:null;
 }
 async function geocode(q){
   const r=await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=in&q="+encodeURIComponent(q));
   const j=await r.json(); return j[0]?[+j[0].lat,+j[0].lon]:null;
 }
+const r6 = ll => [+(+ll[0]).toFixed(6),+(+ll[1]).toFixed(6)];
+
+/* ---------- trip context ---------- */
+function dayOK(d){ const w=d.getDay(); if(S.days==="mon-sat"&&w===0) return false; if(S.days==="mon-fri"&&(w===0||w===6)) return false; return true; }
+function trip(){
+  const d=new Date(), hm=d.toTimeString().slice(0,5), date=d.toISOString().slice(0,10);
+  const inAm=hm>=S.amFrom&&hm<=S.amTo, inPm=hm>=S.pmFrom&&hm<=S.pmTo;
+  const kind = demoKind || (inAm?"am":inPm?"pm":(d.getHours()<12?"am":"pm"));
+  const active = !!demoKind || (dayOK(d)&&(inAm||inPm));
+  const stop = kind==="am" ? S.amStop : (S.pmStop||S.amStop);
+  return {kind, active, stop, key: demoKind?"demo":(date+"-"+kind)};
+}
+
+/* ---------- map ---------- */
+const map = L.map("map").setView(S.school,13);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map);
+const icon = (cls,t) => L.divIcon({className:"",html:`<div class="${cls}">${t}</div>`,iconSize:[34,34],iconAnchor:[17,30]});
+const busM = L.marker(S.school,{icon:L.divIcon({className:"",html:'<div class="busicon">🚌</div>',iconSize:[34,34],iconAnchor:[17,17]}),zIndexOffset:1000});
+const amM = L.marker(S.school,{icon:icon("stopicon","🌅"),draggable:true}).bindTooltip("Morning pickup");
+const pmM = L.marker(S.school,{icon:icon("stopicon","🏠"),draggable:true}).bindTooltip("Afternoon drop");
+const schoolM = L.circle(S.school,{radius:S.schoolR,color:"#2f6fb2",weight:2,fillOpacity:.08}).addTo(map).bindTooltip("TISB zone");
+const arrC = L.circle(S.school,{radius:1,color:"#2f8a5b",weight:2,fillOpacity:.12});
+const trail = L.polyline([],{color:"#f5b400",weight:5,opacity:.85}).addTo(map);
+amM.on("dragend",()=>setStop("am",[amM.getLatLng().lat,amM.getLatLng().lng]));
+pmM.on("dragend",()=>setStop("pm",[pmM.getLatLng().lat,pmM.getLatLng().lng]));
+let tapMode=null;
+map.on("click",e=>{ if(!tapMode) return; setStop(tapMode,[e.latlng.lat,e.latlng.lng]); flash(tapMode==="am"?"Morning stop set":"Afternoon stop set"); tapMode=null; });
+function drawStops(){
+  schoolM.setLatLng(S.school).setRadius(S.schoolR);
+  if(S.amStop) amM.setLatLng(S.amStop).addTo(map); else map.removeLayer(amM);
+  if(S.pmStop) pmM.setLatLng(S.pmStop).addTo(map); else map.removeLayer(pmM);
+  const t=trip(); if(t.stop){ arrC.setLatLng(t.stop).setRadius(S.arrM).addTo(map); } else map.removeLayer(arrC);
+}
+function setStop(which,ll){ if(which==="am") S.amStop=r6(ll); else S.pmStop=ll?r6(ll):null; save(); drawStops(); fillStopInputs(); eta.reset(); refreshEta(true); render(); }
+
+/* ---------- arrival-time engine: Google live traffic → road route × traffic → rough ---------- */
+const eta = { min:null, src:"estimate", km:null, gAt:0, oAt:0, oFrom:null, oSec:null, gErr:false,
+  reset(){ this.oAt=0; this.gAt=0; this.oSec=null; this.oFrom=null; } };
+function roughMin(ll,stop){ return hav(ll,stop)*S.road/S.avg*60; }
+async function osrm(ll,stop){
+  const u=`https://router.project-osrm.org/route/v1/driving/${ll[1]},${ll[0]};${stop[1]},${stop[0]}?overview=false`;
+  const j=await (await fetch(u)).json(); if(j.code!=="Ok") throw new Error(j.code);
+  return {sec:j.routes[0].duration, km:j.routes[0].distance/1000};
+}
+async function googleTraffic(ll,stop){
+  const r=await fetch("https://routes.googleapis.com/directions/v2:computeRoutes",{method:"POST",
+    headers:{"Content-Type":"application/json","X-Goog-Api-Key":S.gkey,"X-Goog-FieldMask":"routes.duration,routes.distanceMeters"},
+    body:JSON.stringify({origin:{location:{latLng:{latitude:ll[0],longitude:ll[1]}}},destination:{location:{latLng:{latitude:stop[0],longitude:stop[1]}}},travelMode:"DRIVE",routingPreference:"TRAFFIC_AWARE"})});
+  const j=await r.json(); if(!j.routes||!j.routes[0]) throw new Error((j.error&&j.error.message)||"no route");
+  return {sec:parseInt(j.routes[0].duration,10), km:j.routes[0].distanceMeters/1000};
+}
+let etaBusy=false;
+async function refreshEta(force){
+  const t=trip(); if(!bus||!t.stop){ eta.min=null; return; }
+  const ll=[bus.lat,bus.lng], now=Date.now(), rough=roughMin(ll,t.stop);
+  eta.km=hav(ll,t.stop);
+  if(eta.min===null||eta.src==="estimate"){ eta.min=rough; }
+  if(etaBusy) return; etaBusy=true;
+  try{
+    // Google live traffic: only when close enough to matter, at most every 90 s, not in demo
+    if(S.gkey && !demo && !eta.gErr && rough<=40 && (force||now-eta.gAt>90000)){
+      try{ const g=await googleTraffic(ll,t.stop); eta.gAt=now; eta.min=g.sec/60; eta.km=g.km; eta.src="google"; return; }
+      catch(e){ eta.gErr=true; flash("Google key not working – using road route instead"); }
+    }
+    if(eta.src==="google" && now-eta.gAt<120000){ return; } // keep recent Google value
+    const moved = eta.oFrom? hav(eta.oFrom,ll) : 99;
+    if(force||now-eta.oAt>45000||moved>0.25){
+      try{ const o=await osrm(ll,t.stop); eta.oAt=now; eta.oFrom=ll; eta.oSec=o.sec; eta.km=o.km; }catch(e){}
+    }
+    if(eta.oSec!==null){
+      const since=(now-eta.oAt)/1000*(bus.spd>3?1:0);         // count down between route refreshes while moving
+      eta.min=Math.max(0,(eta.oSec*S.traffic - since)/60); eta.src="road";
+    }else{ eta.min=rough; eta.src="estimate"; }
+  } finally { etaBusy=false; }
+}
 
 /* ---------- Wialon (Cpark) connection via official Wialon browser SDK ---------- */
-let sid=null, unitId=null, pollT=null, demo=null, sess=null, unitObj=null, sdkP=null;
+let sid=null, pollT=null, demo=null, demoKind=null, sess=null, unitObj=null, sdkP=null;
 function loadSDK(){
   if(window.wialon) return Promise.resolve();
   if(sdkP) return sdkP;
@@ -261,14 +347,13 @@ async function connect(){
   }catch(e){ fail("Can't reach server","Tracking service error: "+e.message); }
 }
 function afterLogin(){
-  sid=sess.getId? sess.getId() : "ok";
+  sid="ok";
   const flags=wialon.item.Item.dataFlag.base|wialon.item.Unit.dataFlag.lastMessage;
   sess.updateDataFlags([{type:"type",data:"avl_unit",flags:flags,mode:0}],code=>{
     if(code) return fail("Can't load the bus","Logged in, but the bus list failed (code "+code+").");
     const units=sess.getItems("avl_unit")||[];
     unitObj=units.find(u=>S.unitMask && u.getName().includes(S.unitMask))||units[0];
     if(!unitObj) return fail("No bus on this login","This login has no vehicles. Check Bus name in Setup.");
-    unitId=unitObj.getId();
     $("unitName").textContent=unitObj.getName().replace(/^\(.*?\)\s*/,"");
     unitObj.addListener("changePosition",()=>{ if(!demo) poll(false); });
     poll(true);
@@ -276,80 +361,78 @@ function afterLogin(){
   });
 }
 function poll(first){
-  if(!unitObj) return;
+  if(!unitObj||demo) return;
   const pos=unitObj.getPosition();
   if(!pos){ setStatus("stale","No position yet"); return; }
-  update({lat:pos.y,lng:pos.x,spd:pos.s||0,t:pos.t,sats:pos.sc},first);
+  update({lat:pos.y,lng:pos.x,spd:pos.s||0,t:pos.t},first);
 }
 
-/* ---------- state + alerts ---------- */
-let bus=null, trip={school:null,t10:null,t5:null,home:null,wasInSchool:false}, lastLL=null;
-function update(p,fit){
-  const ll=[p.lat,p.lng];
-  bus=p;
+/* ---------- state + alerts (each alert once per trip window) ---------- */
+let bus=null, lastLL=null, T={key:null,fired:{},wasInSchool:false};
+function alertList(kind){
+  const L=[];
+  if(kind==="pm"&&S.aLeft) L.push({id:"left",label:"Left TISB"});
+  [["a1",S.a1on,S.a1min],["a2",S.a2on,S.a2min],["a3",S.a3on,S.a3min]].filter(a=>a[1]).sort((x,y)=>y[2]-x[2])
+    .forEach(a=>L.push({id:a[0],label:a[2]+" min",min:+a[2]}));
+  if(S.aArr) L.push({id:"arr",label:"At stop"});
+  return L;
+}
+async function update(p,fit){
+  const ll=[p.lat,p.lng]; bus=p;
   busM.setLatLng(ll).addTo(map);
-  if(!lastLL || hav(lastLL,ll)>0.01){ trail.addLatLng(ll); if(trail.getLatLngs().length>400) trail.setLatLngs(trail.getLatLngs().slice(-400)); lastLL=ll; }
+  if(!lastLL||hav(lastLL,ll)>0.01){ trail.addLatLng(ll); if(trail.getLatLngs().length>500) trail.setLatLngs(trail.getLatLngs().slice(-500)); lastLL=ll; }
   const age=(Date.now()/1000-p.t)/60;
-  if(demo) setStatus("demo","Demo trip");
-  else if(age>10) setStatus("stale","Last signal "+ago(p.t));
-  else setStatus("live","Live");
+  if(demo) setStatus("demo","Demo trip"); else if(age>10) setStatus("stale","Last signal "+ago(p.t)); else setStatus("live","Live");
+  render();
+  await refreshEta(fit);
   checkAlerts(ll,age);
   render();
   if(fit) fitAll();
 }
-function inWindow(){
-  const d=new Date(), dow=d.getDay();
-  if(S.days==="mon-sat"&&dow===0) return false;
-  if(S.days==="mon-fri"&&(dow===0||dow===6)) return false;
-  const hm=d.toTimeString().slice(0,5);
-  return (hm>=S.amFrom&&hm<=S.amTo)||(hm>=S.pmFrom&&hm<=S.pmTo);
-}
-function etaMin(ll){ return S.home? hav(ll,S.home)*S.road/S.avg*60 : null; }
 function checkAlerts(ll,ageMin){
-  if(ageMin>15 && !demo) return;            // don't alert on old positions
-  const now=Date.now(), dS=hav(ll,S.school)*1000, eta=etaMin(ll), dH=S.home?hav(ll,S.home)*1000:Infinity;
-  const inSchool=dS<=S.schoolR;
-  if(inSchool || (eta!==null && eta>20)){ // reset for the next approach
-    if(inSchool) trip.wasInSchool=true;
-    if(trip.t10||trip.t5||trip.home) trip={school:null,t10:null,t5:null,home:null,wasInSchool:inSchool};
+  const t=trip(); if(!t.stop) return;
+  if(T.key!==t.key){ T={key:t.key,fired:{},wasInSchool:false}; }
+  if(ageMin>15 && !demo) return;
+  const now=Date.now(), dS=hav(ll,S.school)*1000, dStop=hav(ll,t.stop)*1000, list=alertList(t.kind), F=T.fired;
+  const say=(id,title,msg)=>{ F[id]=now; if(t.active) alertOut(title,msg); };
+  const stopName = t.kind==="am"?"the pickup stop":"the drop stop";
+  if(dS<=S.schoolR) T.wasInSchool=true;
+  if(list.some(a=>a.id==="left") && T.wasInSchool && dS>S.schoolR && !F.left){ T.wasInSchool=false; say("left","🚌 Bus has left TISB", eta.min!==null?`About ${Math.round(eta.min)} min to ${stopName}`:"On its way"); }
+  if(F.arr) return;
+  if(list.some(a=>a.id==="arr") && dStop<=S.arrM){
+    list.forEach(a=>{ if(a.min&&!F[a.id]) F[a.id]=now; });
+    say("arr","🚌 Bus is at "+stopName, t.kind==="am"?"Time to board":"Drop-off now"); return;
   }
-  const on = demo || inWindow();
-  if(trip.wasInSchool && !inSchool && !trip.school){ trip.school=now; trip.wasInSchool=false; if(on) alertOut("🚌 Bus has left TISB","Heading out now"+(eta?` · about ${Math.round(eta)} min from home`:"")); }
-  if(eta===null) return;
-  if(eta<=10 && !trip.t10 && dH>300){ trip.t10=now; if(on) alertOut("🚌 Bus is ~10 minutes away",fmtKm(dH/1000)+" from home"); }
-  if(eta<=5 && !trip.t5 && dH>300){ trip.t10=trip.t10||now; trip.t5=now; if(on) alertOut("🚌 Bus is ~5 minutes away – head out",fmtKm(dH/1000)+" from home"); }
-  if(dH<=300 && !trip.home){ trip.t10=trip.t10||now; trip.t5=trip.t5||now; trip.home=now; if(on) alertOut("🚌 Bus is at your gate","Within 300 m of home"); }
+  if(eta.min===null) return;
+  // fire only the tightest threshold crossed; mark wider ones done so they never fire late
+  const due=list.filter(a=>a.min && !F[a.id] && eta.min<=a.min);
+  if(due.length){ const tight=due[due.length-1]; due.forEach(a=>F[a.id]=now); F[tight.id]=now;
+    say(tight.id,`🚌 Bus is ~${tight.min} min away`, `${fmtKm(eta.km||dStop/1000)} to ${stopName}${eta.src==="google"?" · live traffic":""}`); }
 }
 
 let armed=false, actx=null, wake=null;
 function beep(){
   if(!actx) return;
   [0,0.35,0.7].forEach((o,i)=>{ const os=actx.createOscillator(), g=actx.createGain();
-    os.frequency.value=i===2?988:784; os.type="sine"; g.gain.setValueAtTime(0.0001,actx.currentTime+o);
+    os.frequency.value=i===2?988:784; g.gain.setValueAtTime(0.0001,actx.currentTime+o);
     g.gain.exponentialRampToValueAtTime(0.4,actx.currentTime+o+0.02); g.gain.exponentialRampToValueAtTime(0.0001,actx.currentTime+o+0.3);
     os.connect(g).connect(actx.destination); os.start(actx.currentTime+o); os.stop(actx.currentTime+o+0.32); });
 }
 function alertOut(title,msg){
-  flash(title+" — "+msg, true);
+  flash(title+" — "+msg,true);
   if(armed){ beep(); try{navigator.vibrate&&navigator.vibrate([300,150,300,150,600])}catch(e){}
     try{ if("speechSynthesis" in window) speechSynthesis.speak(new SpeechSynthesisUtterance(title.replace(/[^\w\s~–-]/g,""))); }catch(e){} }
   try{ if("Notification" in window && Notification.permission==="granted") new Notification(title,{body:msg,tag:"bus"}); }catch(e){}
-  if(S.ntfy){
-    fetch("https://ntfy.sh/"+encodeURIComponent(S.ntfy)+"?t="+encodeURIComponent("ママトラカ: "+title.replace(/^\W+/,""))+"&p=5&tags=bus",{method:"POST",body:msg}).catch(()=>{});
-  }
+  if(S.ntfy){ fetch("https://ntfy.sh/"+encodeURIComponent(S.ntfy)+"?t="+encodeURIComponent("ママトラカ: "+title.replace(/^\W+/,""))+"&p=5&tags=bus",{method:"POST",body:msg}).catch(()=>{}); }
 }
 async function arm(){
-  armed=!armed;
-  const b=$("armBtn");
+  armed=!armed; const b=$("armBtn");
   if(armed){
     try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)(); await actx.resume(); }catch(e){}
     try{ if("Notification" in window && Notification.permission==="default") await Notification.requestPermission(); }catch(e){}
     try{ if("wakeLock" in navigator) wake=await navigator.wakeLock.request("screen"); }catch(e){}
     b.textContent="🔔 Alerts on · screen kept awake"; b.classList.add("armed"); b.classList.remove("primary"); beep();
-  }else{
-    try{ wake&&wake.release(); }catch(e){} wake=null;
-    b.textContent="🔔 Turn on alerts"; b.classList.remove("armed"); b.classList.add("primary");
-  }
+  }else{ try{wake&&wake.release()}catch(e){} wake=null; b.textContent="🔔 Turn on alerts"; b.classList.remove("armed"); b.classList.add("primary"); }
 }
 document.addEventListener("visibilitychange",async()=>{ if(armed&&document.visibilityState==="visible"&&"wakeLock" in navigator){ try{wake=await navigator.wakeLock.request("screen")}catch(e){} } });
 
@@ -359,78 +442,95 @@ const hm = t => new Date(t).toLocaleTimeString([], {hour:"numeric",minute:"2-dig
 function ago(ts){ const m=Math.round((Date.now()/1000-ts)/60); if(m<1) return "just now"; if(m<60) return m+" min ago"; const h=Math.floor(m/60); return h<24? h+" h "+(m%60)+" min ago" : new Date(ts*1000).toLocaleString([], {day:"numeric",month:"short",hour:"numeric",minute:"2-digit"}); }
 function setStatus(cls,txt){ const s=$("status"); s.className="chip "+cls; s.textContent=txt; }
 function render(){
-  const eta = bus&&S.home ? etaMin([bus.lat,bus.lng]) : null;
-  $("etaBig").innerHTML = eta===null ? "--<small>min</small>" : (eta<1?"<1":Math.round(eta))+"<small>min</small>";
-  $("dist").textContent = bus&&S.home ? fmtKm(hav([bus.lat,bus.lng],S.home)) : (S.home?"--":"set home in Setup");
-  $("speed").textContent = bus ? Math.round(bus.spd)+" km/h"+(bus.spd<3?" (stopped)":"") : "--";
+  const t=trip();
+  $("tripLine").innerHTML = (t.kind==="am"?"Morning pickup":"Afternoon drop")+" · <b>"+(t.kind==="am"?(sameLL(S.amStop,LACASA)?"La Casa stop":"pickup stop"):(S.pmStop?"drop stop":"same stop as morning"))+"</b>"+(t.active?"":" · alerts sleep outside bus times");
+  const m=eta.min;
+  $("etaBig").innerHTML = (bus&&t.stop&&m!==null) ? (m<1?"<1":Math.round(m))+"<small>min</small>" : "--<small>min</small>";
+  const src=$("etaSrc"); src.className="src "+(eta.src==="google"?"g":eta.src==="road"?"r":"");
+  src.textContent = eta.src==="google"?"Google live traffic":eta.src==="road"?"road route ×"+S.traffic+" traffic":"rough estimate";
+  $("dist").textContent = bus&&t.stop ? fmtKm(eta.km!==null?eta.km:hav([bus.lat,bus.lng],t.stop)) : (t.stop?"--":"set stop in Setup");
+  $("speed").textContent = bus ? Math.round(bus.spd)+" km/h" : "--";
   $("fix").textContent = bus ? ago(bus.t) : "--";
-  const steps=[["st-school",trip.school],["st-10",trip.t10],["st-5",trip.t5],["st-home",trip.home]];
-  let nextSet=false;
-  steps.forEach(([id,t])=>{ const el=$(id); el.classList.toggle("done",!!t); el.classList.remove("next");
-    if(!t&&!nextSet){ el.classList.add("next"); nextSet=true; } $(id+"-t").textContent = t? hm(t) : "waiting"; });
-  if(bus){ $("gmBus").href=`https://www.google.com/maps/search/?api=1&query=${bus.lat},${bus.lng}`; }
-  else { $("gmBus").href=`https://www.google.com/maps/search/?api=1&query=${S.school.join(",")}`; }
-  const orig = bus?`${bus.lat},${bus.lng}`:S.school.join(",");
-  $("gmRoute").href = S.home ? `https://www.google.com/maps/dir/?api=1&origin=${orig}&destination=${S.home.join(",")}&travelmode=driving` : $("gmBus").href;
+  const list=alertList(t.kind), F=(T.key===t.key)?T.fired:{};
+  let next=false;
+  $("ladder").innerHTML = list.length? list.map(a=>{ const done=!!F[a.id]; let cls="step"+(done?" done":""); if(!done&&!next){cls+=" next";next=true;}
+    return `<div class="${cls}"><b>${a.label}</b><span>${done?hm(F[a.id]):"waiting"}</span></div>`; }).join("") : '<div class="step"><b>No alerts</b><span>turn some on in Setup</span></div>';
+  const q = bus?`${bus.lat},${bus.lng}`:S.school.join(",");
+  $("gmBus").href=`https://www.google.com/maps/search/?api=1&query=${q}`;
+  $("gmRoute").href = t.stop ? `https://www.google.com/maps/dir/?api=1&origin=${q}&destination=${t.stop.join(",")}&travelmode=driving` : $("gmBus").href;
 }
+function sameLL(a,b){ return a&&b&&Math.abs(a[0]-b[0])<1e-5&&Math.abs(a[1]-b[1])<1e-5; }
 let toastT=null;
-function flash(t,big){ const el=$("toast"); el.textContent=t; el.style.background=big?"var(--stop)":"var(--ink)"; el.style.color=big?"#fff":"var(--paper)"; el.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>el.hidden=true, big?12000:2500); }
-function fitAll(){ const pts=[S.school]; if(S.home) pts.push(S.home); if(bus) pts.push([bus.lat,bus.lng]); map.fitBounds(L.latLngBounds(pts).pad(0.25),{maxZoom:16}); }
+function flash(t,big){ const el=$("toast"); el.textContent=t; el.style.background=big?"var(--stop)":"var(--ink)"; el.style.color=big?"#fff":"var(--paper)"; el.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>el.hidden=true,big?12000:2500); }
+function fitAll(){ const t=trip(); const pts=[S.school]; if(t.stop) pts.push(t.stop); if(bus) pts.push([bus.lat,bus.lng]); map.fitBounds(L.latLngBounds(pts).pad(0.2),{maxZoom:16}); }
 
-/* ---------- demo trip ---------- */
-function stopDemo(){ if(demo){ clearInterval(demo); demo=null; } }
+/* ---------- demo trip (afternoon: TISB → drop stop) ---------- */
+function stopDemo(){ if(demo){ clearInterval(demo); demo=null; demoKind=null; } }
 function runDemo(){
-  clearInterval(pollT); stopDemo();
-  if(!S.home){ setHome([S.school[0]+0.045, S.school[1]-0.03]); flash("Demo home placed ~6 km from TISB. Set your real home in Setup."); }
-  trip={school:null,t10:null,t5:null,home:null,wasInSchool:false}; trail.setLatLngs([]); lastLL=null;
-  const a=S.school, b=S.home, mid=[(a[0]+b[0])/2+0.008,(a[1]+b[1])/2-0.006];
-  const pts=[]; for(let i=0;i<=120;i++){ const t=i/120, u=1-t; pts.push([u*u*a[0]+2*u*t*mid[0]+t*t*b[0], u*u*a[1]+2*u*t*mid[1]+t*t*b[1]]); }
-  let i=0; update({lat:a[0],lng:a[1],spd:0,t:Date.now()/1000},true);
-  demo=setInterval(()=>{ i++; if(i>=pts.length){ stopDemo(); flash("Demo finished. Tap Save & connect in Setup for the real bus."); if(sid) pollT=setInterval(()=>poll(false),15000); return; }
-    update({lat:pts[i][0],lng:pts[i][1],spd:24,t:Date.now()/1000},false); },500);
+  stopDemo(); demoKind="pm";
+  const t=trip(); if(!t.stop){ demoKind=null; flash("Set a stop in Setup first"); return; }
+  T={key:null,fired:{},wasInSchool:false}; trail.setLatLngs([]); lastLL=null; eta.reset(); eta.src="estimate"; eta.min=null;
+  const a=S.school, b=t.stop, mid=[(a[0]+b[0])/2+0.01,(a[1]+b[1])/2+0.004];
+  const pts=[]; for(let i=0;i<=150;i++){ const s=i/150,u=1-s; pts.push([u*u*a[0]+2*u*s*mid[0]+s*s*b[0], u*u*a[1]+2*u*s*mid[1]+s*s*b[1]]); }
+  let i=0; bus={lat:a[0],lng:a[1],spd:0,t:Date.now()/1000}; busM.setLatLng(a).addTo(map);
+  eta.min=30; eta.km=hav(a,b); setStatus("demo","Demo trip"); checkAlerts(a,0); render(); fitAll();
+  demo=setInterval(()=>{ i++;
+    if(i>=pts.length){ stopDemo(); flash("Demo finished"); eta.reset(); poll(true); return; }
+    const p=pts[i];
+    bus={lat:p[0],lng:p[1],spd:24,t:Date.now()/1000};
+    eta.src="estimate"; eta.min=(150-i)*0.2; eta.km=hav(p,b); // simulated 30-minute countdown
+    busM.setLatLng(p).addTo(map); trail.addLatLng(p); setStatus("demo","Demo trip");
+    checkAlerts(p,0); render();
+  },400);
 }
 
 /* ---------- setup sheet ---------- */
-const F=["token","portal","api","unitMask","schoolR","avg","road","amFrom","amTo","pmFrom","pmTo","days","ntfy"];
-function openSheet(){ F.forEach(k=>$(k).value=S[k]); $("homeIn").value=S.home?S.home.join(", "):""; $("schoolIn").value=S.school.join(", "); $("sheet").showModal(); }
+const F=["token","portal","api","unitMask","schoolR","amFrom","amTo","pmFrom","pmTo","days","gkey","traffic","avg","ntfy","a1min","a2min","a3min","arrM"];
+const CB=["aLeft","a1on","a2on","a3on","aArr"];
+const NUM=["schoolR","traffic","avg","a1min","a2min","a3min","arrM"];
+function fillStopInputs(){ $("amStopIn").value=S.amStop?S.amStop.join(", "):""; $("pmStopIn").value=S.pmStop?S.pmStop.join(", "):""; $("schoolIn").value=S.school.join(", "); }
+function openSheet(){ F.forEach(k=>$(k).value=S[k]); CB.forEach(k=>$(k).checked=!!S[k]); fillStopInputs(); $("sheet").showModal(); }
 $("settingsBtn").onclick=openSheet;
+async function readStop(v){ v=v.trim(); if(!v) return null; let ll=parseLL(v); if(!ll){ try{ll=await geocode(v)}catch(e){} } return ll; }
 $("form").addEventListener("submit",async e=>{
   if(e.submitter&&e.submitter.value!=="save") return;
-  F.forEach(k=>{ const v=$(k).value.trim(); S[k]= ["schoolR","avg","road"].includes(k)? (+v||DEF[k]) : v; });
+  const oldApi=S.api, oldTok=S.token;
+  F.forEach(k=>{ const v=String($(k).value).trim(); S[k]=NUM.includes(k)?(+v||DEF[k]):v; });
+  CB.forEach(k=>S[k]=$(k).checked);
   const sc=parseLL($("schoolIn").value); if(sc) S.school=sc;
-  const hv=$("homeIn").value.trim(); if(hv){ const h=parseLL(hv); if(h) S.home=h; }
-  save(); drawZones(); render(); connect();
+  const am=await readStop($("amStopIn").value); if(am) S.amStop=r6(am);
+  const pmv=$("pmStopIn").value.trim(); if(!pmv) S.pmStop=null; else { const pm=await readStop(pmv); if(pm) S.pmStop=r6(pm); }
+  eta.gErr=false; eta.reset(); save(); drawStops(); render();
+  if(S.api!==oldApi && sess){ flash("Data server changed – reloading"); setTimeout(()=>location.reload(),800); return; }
+  if(S.token!==oldTok || !sid) connect(); else refreshEta(true).then(render);
 });
-$("homeSet").onclick=async()=>{
-  const v=$("homeIn").value.trim(); if(!v) return;
-  let ll=parseLL(v);
-  if(!ll){ try{ ll=await geocode(v); }catch(e){} }
-  if(ll){ setHome(ll); map.setView(ll,15); flash("Home set"); } else flash("Couldn't read that. Paste coordinates like 12.9001, 77.7012");
-};
-$("homeTap").onclick=()=>{ tapMode=true; $("sheet").close(); flash("Tap your gate on the map"); };
+document.querySelectorAll("[data-set]").forEach(b=>b.onclick=async()=>{
+  const w=b.dataset.set, v=$(w==="am"?"amStopIn":"pmStopIn").value;
+  if(w==="pm"&&!v.trim()){ setStop("pm",null); flash("Afternoon stop = morning stop"); return; }
+  const ll=await readStop(v); if(ll){ setStop(w,ll); map.setView(ll,15); flash("Stop set"); } else flash("Couldn't read that. Paste coordinates like 12.9042, 77.6758");
+});
+document.querySelectorAll("[data-tap]").forEach(b=>b.onclick=()=>{ tapMode=b.dataset.tap; $("sheet").close(); flash("Tap the stop on the map"); });
 $("testBtn").onclick=()=>{ S.ntfy=$("ntfy").value.trim(); save(); alertOut("🚌 Test alert","If you can read this, alerts are working"); };
 $("oauthBtn").onclick=()=>{
   const portal=$("portal").value.trim().replace(/\/$/,"");
   const url=portal+"/login.html?client_id=TISBMamaTracker&access_type=0x100&activation_time=0&duration=0&flags=0x1&redirect_uri="+encodeURIComponent(portal+"/post_token.html");
-  const w=window.open(url,"cparklogin","width=480,height=640");
-  if(!w) location.href=url;
+  const w=window.open(url,"cparklogin","width=480,height=640"); if(!w) location.href=url;
 };
 window.addEventListener("message",e=>{
   const m=e.data; if(typeof m!=="string"||m.indexOf("access_token=")<0) return;
   const tok=(m.match(/access_token=([^&]+)/)||[])[1]; if(!tok) return;
   S.token=tok; save(); $("token").value=tok; flash("Signed in. Tap Save & connect.");
 });
-// token pasted as full URL
-$("token").addEventListener("change",()=>{ const v=$("token").value; const m=v.match(/access_token=([^&\s]+)/); if(m) $("token").value=m[1]; });
+$("token").addEventListener("change",()=>{ const m=$("token").value.match(/access_token=([^&\s]+)/); if(m) $("token").value=m[1]; });
+// token handed back in this page's own address after a same-tab sign-in
+(()=>{ const m=(location.search+location.hash).match(/access_token=([^&]+)/); if(m){ S.token=m[1]; save(); try{history.replaceState(null,"",location.pathname)}catch(e){} } })();
 
-$("armBtn").onclick=arm;
-$("demoBtn").onclick=runDemo;
-$("fitBtn").onclick=fitAll;
+$("armBtn").onclick=arm; $("demoBtn").onclick=runDemo; $("fitBtn").onclick=fitAll;
 
 /* ---------- boot ---------- */
-drawZones(); render(); fitAll();
+drawStops(); render(); fitAll();
 if(S.token) connect(); else { setStatus("off","Not connected"); setTimeout(openSheet,400); }
-setInterval(render,30000);
+setInterval(()=>{ drawStops(); if(bus&&!demo){ refreshEta(false).then(()=>{ checkAlerts([bus.lat,bus.lng],(Date.now()/1000-bus.t)/60); render(); }); } else render(); },30000);
 })();
 </script>
 </body>
