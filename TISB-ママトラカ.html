@@ -525,7 +525,7 @@ function checkAlerts(ll,ageMin){
   if(T.key!==tr.key){ T={key:tr.key,fired:{},wasInSchool:false}; }
   if(ageMin>15 && !demo) return;
   const now=Date.now(), dS=hav(ll,S.school)*1000, dStop=hav(ll,tr.stop)*1000, list=alertList(tr.kind), F=T.fired;
-  const say=(id,title,msg)=>{ F[id]=now; if(tr.active) alertOut(title,msg); };
+  const say=(id,title,msg)=>{ F[id]=now; if(tr.active){ alertOut(title,msg); setTimeout(fitAll,50); } }; // re-frame bus + stop at every alert
   const stopName = t(tr.kind==="am"?"thePickup":"theDrop");
   if(dS<=S.schoolR) T.wasInSchool=true;
   if(list.some(a=>a.id==="left") && T.wasInSchool && dS>S.schoolR && !F.left){ T.wasInSchool=false;
@@ -621,7 +621,13 @@ async function setLang(l){
 $("lnEn").onclick=()=>setLang("en"); $("lnJa").onclick=()=>setLang("ja");
 let toastT=null;
 function flash(x,big){ const el=$("toast"); el.textContent=x; el.style.background=big?"var(--stop)":"var(--ink)"; el.style.color=big?"#fff":"var(--paper)"; el.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>el.hidden=true,big?12000:3000); }
-function fitAll(){ const tr=trip(); const pts=[S.school]; if(tr.stop) pts.push(tr.stop); if(bus) pts.push([bus.lat,bus.lng]); map.fitBounds(L.latLngBounds(pts).pad(0.2),{maxZoom:16}); }
+function fitAll(){ // bus + active stop only; TISB is added only when there is no bus position yet
+  const tr=trip(), pts=[];
+  if(bus) pts.push([bus.lat,bus.lng]);
+  if(tr.stop) pts.push(tr.stop);
+  if(pts.length<2) pts.push(S.school);
+  map.fitBounds(L.latLngBounds(pts).pad(0.25),{maxZoom:16,animate:true});
+}
 
 /* ---------- demo trip (afternoon: TISB → drop stop) ---------- */
 function stopDemo(){ if(demo){ clearInterval(demo); demo=null; demoKind=null; } }
