@@ -62,7 +62,7 @@ header .who #unitName{opacity:1}
 .btn.armed{background:var(--go);border-color:var(--go);color:#fff}
 .btn.grow{flex:1;justify-content:center}
 .note{font-size:12px;color:var(--ink-2)}
-#toast{position:fixed;left:16px;right:16px;top:calc(env(safe-area-inset-top,0px) + 64px);z-index:2000;background:var(--stop);color:#fff;
+#toast{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);z-index:2000;background:var(--stop);color:#fff;
   padding:14px 16px;border-radius:12px;font-weight:700;box-shadow:var(--shadow);font-size:17px}
 /* settings sheet */
 dialog{border:0;border-radius:16px;padding:0;width:min(560px,calc(100% - 24px));max-height:88vh;background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
@@ -101,7 +101,15 @@ a.btn{color:var(--ink)}
 .al input[type=number]{width:74px;text-align:center}
 .al .u{font-weight:400;color:var(--ink-2);font-size:13px}
 .stopicon{font-size:26px;line-height:1;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
-header{flex-wrap:wrap}
+header{display:grid!important;gap:8px;position:sticky;top:0;z-index:1500}
+.hrow{display:flex;align-items:center;gap:10px;min-width:0}
+.hrow2{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.hrow2 .chip{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.etaTop{display:grid;grid-template-columns:auto auto;align-items:baseline;column-gap:3px;text-align:right;flex:none}
+.etaTop .n{font:700 40px/.9 var(--disp);color:var(--bus);font-variant-numeric:tabular-nums}
+.etaTop .u{font:700 15px var(--disp);opacity:.8}
+.etaTop .d{grid-column:1/-1;font-size:12px;opacity:.75;white-space:nowrap}
+.etaTop.soon .n{color:#ff8a6b}
 #subline{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
 .lang{display:inline-flex;border:1px solid rgba(255,255,255,.28);border-radius:99px;overflow:hidden;font-size:12px;font-weight:700}
 .lang button{border:0;background:transparent;color:inherit;padding:5px 9px;cursor:pointer;opacity:.7}
@@ -111,12 +119,17 @@ html[lang="ja"] .step b,html[lang="ja"] legend,html[lang="ja"] .sheet h2{font-fa
 </style>
 
 <header>
-  <span class="plate">TISB</span>
-  <div class="who"><b class="brand">ママトラカ</b><span id="subline">R03 · <span id="unitName">KA 51 D 3270</span></span></div>
-  <div class="lang" role="group" aria-label="Language / 言語">
-    <button type="button" id="lnEn" aria-pressed="true">EN</button><button type="button" id="lnJa" aria-pressed="false">日本語</button>
+  <div class="hrow">
+    <span class="plate">TISB</span>
+    <div class="who"><b class="brand">ママトラカ</b><span id="subline">R03 · <span id="unitName">KA 51 D 3270</span></span></div>
+    <div class="etaTop" aria-live="polite"><span class="n" id="etaTopN">--</span><span class="u" id="etaTopU">min</span><span class="d" id="etaTopD"></span></div>
   </div>
-  <span id="status" class="chip">Not connected</span>
+  <div class="hrow2">
+    <div class="lang" role="group" aria-label="Language / 言語">
+      <button type="button" id="lnEn" aria-pressed="true">EN</button><button type="button" id="lnJa" aria-pressed="false">日本語</button>
+    </div>
+    <span id="status" class="chip">Not connected</span>
+  </div>
 </header>
 
 <div id="map" role="application" aria-label="Map"></div>
@@ -570,6 +583,12 @@ function render(){
   $("tripLine").innerHTML = t(tr.kind)+" · <b>"+stopLbl+"</b>"+(tr.active?"":t("sleep"));
   const m=eta.min;
   $("etaBig").innerHTML = ((bus&&tr.stop&&m!==null) ? (m<1?"&lt;1":Math.round(m)) : "--")+"<small>"+t("min")+"</small>";
+  const showM = bus&&tr.stop&&m!==null;
+  $("etaTopN").textContent = showM ? (m<1?"<1":Math.round(m)) : "--";
+  $("etaTopU").textContent = t("min");
+  $("etaTopD").textContent = showM ? fmtKm(eta.km!==null?eta.km:hav([bus.lat,bus.lng],tr.stop)) : "";
+  const tightest = Math.min(...alertList(tr.kind).filter(a=>a.min).map(a=>a.min), 5);
+  document.querySelector(".etaTop").classList.toggle("soon", showM && m<=tightest);
   const src=$("etaSrc"); src.className="src "+(eta.src==="google"?"g":eta.src==="road"?"r":"");
   src.textContent = eta.src==="google"?t("srcG"):eta.src==="road"?t("srcR",{f:S.traffic}):t("srcE");
   $("dist").textContent = bus&&tr.stop ? fmtKm(eta.km!==null?eta.km:hav([bus.lat,bus.lng],tr.stop)) : "--";
