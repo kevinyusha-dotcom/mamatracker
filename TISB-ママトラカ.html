@@ -241,6 +241,8 @@ const DEF = {
 };
 let S = Object.assign({}, DEF, store.get());
 if(S.home && !store.get().amStop){ S.amStop=S.home; } delete S.home;
+const BUILTIN_GKEY="AIzaSyDJagctK7lifCyDvOr5YlSM4IMpEMjLCAU"; // locked to kevinyusha-dotcom.github.io
+if(!S.gkey) S.gkey=BUILTIN_GKEY;
 const save = () => store.set(S);
 
 /* ---------- words ---------- */
