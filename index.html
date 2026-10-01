@@ -1,0 +1,759 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ママトラカ">
+<meta name="application-name" content="TISB ママトラカ">
+<meta name="theme-color" content="#16212e">
+<title>TISB ママトラカ</title>
+<link rel="icon" href="icon-180.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=M+PLUS+Rounded+1c:wght@700&family=Public+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root{
+  --ink:#16212e; --ink-2:#4a5a6c; --paper:#f4f5f0; --card:#ffffff; --line:#dfe2da;
+  --bus:#f5b400; --bus-ink:#3a2a00; --go:#2f8a5b; --warn:#c9800a; --stop:#cc4436; --sky:#2f6fb2;
+  --shadow:0 1px 2px rgba(22,33,46,.08),0 6px 20px rgba(22,33,46,.08);
+  --disp:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --ink:#eef1ea; --ink-2:#9fb0c2; --paper:#0f1822; --card:#172331; --line:#253447;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.3); color-scheme:dark;}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--paper);color:var(--ink);font:15px/1.45 var(--body);display:flex;flex-direction:column;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+button,input,select{font:inherit;color:inherit}
+header{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--ink);color:var(--paper)}
+@media (prefers-color-scheme:dark){header{background:#0a1118;color:var(--ink)}}
+.plate{font:700 20px/1 var(--disp);letter-spacing:.04em;background:var(--bus);color:var(--bus-ink);padding:5px 8px 4px;border-radius:4px}
+header .who{flex:1;min-width:0}
+header .who b{display:block;font:600 16px/1.1 var(--disp);letter-spacing:.06em;text-transform:uppercase}
+header .who span{font-size:12px;opacity:.75}
+header .who #unitName{opacity:1}
+.brand{font:700 19px/1.1 "M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif!important;letter-spacing:.06em!important;text-transform:none!important}
+.chip{font-size:12px;font-weight:600;padding:4px 9px;border-radius:99px;white-space:nowrap;background:rgba(255,255,255,.12)}
+.chip.live{background:var(--go);color:#fff}.chip.stale{background:var(--warn);color:#fff}.chip.off{background:var(--stop);color:#fff}.chip.demo{background:var(--sky);color:#fff}
+#map{flex:1 1 auto;min-height:38vh;background:#cfd6cc}
+.panel{background:var(--card);border-top:1px solid var(--line);box-shadow:var(--shadow);padding:14px 16px 16px;display:grid;gap:14px}
+.eta{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.eta .big{font:700 64px/.85 var(--disp);font-variant-numeric:tabular-nums}
+.eta .big small{font-size:26px;margin-left:4px;color:var(--ink-2)}
+.eta .meta{display:grid;gap:2px;font-size:13px;color:var(--ink-2);padding-bottom:4px}
+.eta .meta b{color:var(--ink);font-variant-numeric:tabular-nums}
+.ladder{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.step{border:1px solid var(--line);border-radius:8px;padding:7px 8px;font-size:12px;line-height:1.25}
+.step b{display:block;font:700 15px/1.1 var(--disp);letter-spacing:.04em;text-transform:uppercase}
+.step.done{background:var(--go);border-color:var(--go);color:#fff}
+.step.next{border-color:var(--bus);box-shadow:inset 0 0 0 1px var(--bus)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 14px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+.btn.primary{background:var(--bus);border-color:var(--bus);color:var(--bus-ink)}
+.btn.armed{background:var(--go);border-color:var(--go);color:#fff}
+.btn.grow{flex:1;justify-content:center}
+.note{font-size:12px;color:var(--ink-2)}
+#toast{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);z-index:2000;background:var(--stop);color:#fff;
+  padding:14px 16px;border-radius:12px;font-weight:700;box-shadow:var(--shadow);font-size:17px}
+/* settings sheet */
+dialog{border:0;border-radius:16px;padding:0;width:min(560px,calc(100% - 24px));max-height:88vh;background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+dialog::backdrop{background:rgba(10,17,24,.55)}
+.sheet{padding:18px 18px 20px;display:grid;gap:18px;overflow:auto;max-height:88vh}
+.sheet h2{margin:0;font:700 24px/1 var(--disp);letter-spacing:.04em;text-transform:uppercase}
+fieldset{border:1px solid var(--line);border-radius:12px;padding:12px 14px 14px;margin:0;display:grid;gap:10px}
+legend{font:700 14px var(--disp);letter-spacing:.08em;text-transform:uppercase;padding:0 6px;color:var(--ink-2)}
+label{display:grid;gap:4px;font-size:13px;font-weight:600}
+input,select{border:1px solid var(--line);border-radius:8px;padding:9px 10px;background:var(--paper);width:100%;min-width:0;font-weight:400}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.leaflet-container{font-family:var(--body)}
+.busicon{font-size:30px;line-height:1;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+.homeicon{font-size:28px;line-height:1;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+@media (min-width:900px){
+  body{display:grid;grid-template-columns:1fr 420px;grid-template-rows:auto 1fr}
+  header{grid-column:1/-1}
+  #map{min-height:0}
+  .panel{border-top:0;border-left:1px solid var(--line);align-content:start;overflow:auto}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<style>
+.eta .src{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:99px;background:var(--line);color:var(--ink-2)}
+.eta .src.g{background:var(--go);color:#fff}
+.eta .src.r{background:var(--sky);color:#fff}
+.trip{font-size:13px;color:var(--ink-2)}
+.trip b{color:var(--ink)}
+.ladder{grid-template-columns:repeat(auto-fit,minmax(60px,1fr))}
+.step b{font-size:14px}
+a.btn{color:var(--ink)}
+.al{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;font-size:14px;font-weight:600}
+.al input[type=checkbox]{width:22px;height:22px;accent-color:var(--go)}
+.al input[type=number]{width:74px;text-align:center}
+.al .u{font-weight:400;color:var(--ink-2);font-size:13px}
+.stopicon{font-size:26px;line-height:1;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+header{display:grid!important;gap:8px;position:sticky;top:0;z-index:1500}
+.hrow{display:flex;align-items:center;gap:10px;min-width:0}
+.hrow2{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.hrow2 .chip{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.etaTop{display:grid;grid-template-columns:auto auto;align-items:baseline;column-gap:3px;text-align:right;flex:none}
+.etaTop .n{font:700 40px/.9 var(--disp);color:var(--bus);font-variant-numeric:tabular-nums}
+.etaTop .u{font:700 15px var(--disp);opacity:.8}
+.etaTop .d{grid-column:1/-1;font-size:12px;opacity:.75;white-space:nowrap}
+.etaTop.soon .n{color:#ff8a6b}
+#subline{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.lang{display:inline-flex;border:1px solid rgba(255,255,255,.28);border-radius:99px;overflow:hidden;font-size:12px;font-weight:700}
+.lang button{border:0;background:transparent;color:inherit;padding:5px 9px;cursor:pointer;opacity:.7}
+.lang button[aria-pressed="true"]{background:var(--bus);color:var(--bus-ink);opacity:1}
+html[lang="ja"] body{font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",var(--body)}
+html[lang="ja"] .step b,html[lang="ja"] legend,html[lang="ja"] .sheet h2{font-family:"Hiragino Sans","Noto Sans JP",var(--disp);letter-spacing:.02em}
+</style>
+
+<header>
+  <div class="hrow">
+    <span class="plate">TISB</span>
+    <div class="who"><b class="brand">ママトラカ</b><span id="subline">R03 · <span id="unitName">KA 51 D 3270</span></span></div>
+    <div class="etaTop" aria-live="polite"><span class="n" id="etaTopN">--</span><span class="u" id="etaTopU">min</span><span class="d" id="etaTopD"></span></div>
+  </div>
+  <div class="hrow2">
+    <div class="lang" role="group" aria-label="Language / 言語">
+      <button type="button" id="lnEn" aria-pressed="true">EN</button><button type="button" id="lnJa" aria-pressed="false">日本語</button>
+    </div>
+    <span id="status" class="chip">Not connected</span>
+  </div>
+</header>
+
+<div id="map" role="application" aria-label="Map"></div>
+
+<section class="panel">
+  <div class="trip" id="tripLine"></div>
+  <div class="eta">
+    <div class="big" id="etaBig">--<small>min</small></div>
+    <div class="meta">
+      <span><span class="src" id="etaSrc"></span></span>
+      <span><span data-i="toStop"></span> <b id="dist">--</b></span>
+      <span><span data-i="speed"></span> <b id="speed">--</b> · GPS <b id="fix">--</b></span>
+    </div>
+  </div>
+
+  <div class="ladder" id="ladder"></div>
+
+  <div class="row">
+    <button class="btn primary grow" id="armBtn" type="button"></button>
+    <button class="btn" id="settingsBtn" type="button" data-i="setupBtn"></button>
+  </div>
+  <div class="row">
+    <a class="btn grow" id="gmBus" target="_blank" rel="noopener" data-i="gmBus"></a>
+    <a class="btn grow" id="gmRoute" target="_blank" rel="noopener" data-i="gmRoute"></a>
+  </div>
+  <div class="row">
+    <button class="btn grow" id="demoBtn" type="button" data-i="demoBtn"></button>
+    <button class="btn grow" id="fitBtn" type="button" data-i="fitBtn"></button>
+  </div>
+  <p class="note" id="hint"></p>
+</section>
+
+<div id="toast" hidden></div>
+
+<dialog id="sheet">
+  <form class="sheet" id="form" method="dialog">
+    <h2 data-i="setupTitle"></h2>
+
+    <fieldset>
+      <legend data-i="lg1"></legend>
+      <p class="note" style="margin:0" data-ih="connNote"></p>
+      <div class="row"><button class="btn primary grow" type="button" id="oauthBtn" data-i="signIn"></button></div>
+      <label for="token"><span data-i="tokenL"></span><input id="token" autocomplete="off" data-ph="tokenPh"></label>
+      <div class="two">
+        <label for="portal"><span data-i="portalL"></span><input id="portal" value="https://gps360.cpark.in"></label>
+        <label for="api"><span data-i="apiL"></span><input id="api" value="https://hst-api.wialon.com"></label>
+      </div>
+      <label for="unitMask"><span data-i="unitL"></span><input id="unitMask" value="3270"></label>
+    </fieldset>
+
+    <fieldset>
+      <legend data-i="lg2"></legend>
+      <p class="note" style="margin:0" data-ih="stopNote"></p>
+      <label for="amStopIn"><span data-i="amStopL"></span><input id="amStopIn" placeholder="12.904261, 77.675845"></label>
+      <div class="row"><button class="btn grow" type="button" data-set="am" data-i="set"></button><button class="btn grow" type="button" data-tap="am" data-i="place"></button></div>
+      <label for="pmStopIn"><span data-ih="pmStopL"></span><input id="pmStopIn" data-ph="samePh"></label>
+      <div class="row"><button class="btn grow" type="button" data-set="pm" data-i="set"></button><button class="btn grow" type="button" data-tap="pm" data-i="place"></button></div>
+      <div class="two">
+        <label for="schoolIn"><span data-i="schoolL"></span><input id="schoolIn" value="12.891681, 77.749808"></label>
+        <label for="schoolR"><span data-i="schoolRL"></span><input id="schoolR" type="number" min="100" max="2000" step="50" value="400"></label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend data-i="lg3"></legend>
+      <p class="note" style="margin:0" data-i="onceNote"></p>
+      <label class="al" for="aLeft"><input type="checkbox" id="aLeft" checked><span data-ih="aLeftL"></span><span></span></label>
+      <label class="al" for="a1on"><input type="checkbox" id="a1on" checked><span data-i="alertWhen"></span><span><input type="number" id="a1min" min="1" max="60" value="15"> <span class="u" data-i="minAway"></span></span></label>
+      <label class="al" for="a2on"><input type="checkbox" id="a2on" checked><span data-i="alertWhen"></span><span><input type="number" id="a2min" min="1" max="60" value="10"> <span class="u" data-i="minAway"></span></span></label>
+      <label class="al" for="a3on"><input type="checkbox" id="a3on" checked><span data-i="alertWhen"></span><span><input type="number" id="a3min" min="1" max="60" value="5"> <span class="u" data-i="minAway"></span></span></label>
+      <label class="al" for="aArr"><input type="checkbox" id="aArr" checked><span data-i="arrL"></span><span><input type="number" id="arrM" min="50" max="1000" step="50" value="200"> <span class="u">m</span></span></label>
+      <div class="two">
+        <label for="amFrom"><span data-i="amFromL"></span><input id="amFrom" type="time" value="06:00"></label>
+        <label for="amTo"><span data-i="amToL"></span><input id="amTo" type="time" value="09:30"></label>
+        <label for="pmFrom"><span data-i="pmFromL"></span><input id="pmFrom" type="time" value="13:00"></label>
+        <label for="pmTo"><span data-i="pmToL"></span><input id="pmTo" type="time" value="18:00"></label>
+      </div>
+      <label for="days"><span data-i="daysL"></span><select id="days"><option value="mon-sat" data-i="d1"></option><option value="mon-fri" data-i="d2"></option><option value="all" data-i="d3"></option></select></label>
+    </fieldset>
+
+    <fieldset>
+      <legend data-i="lg4"></legend>
+      <p class="note" style="margin:0" data-i="trafNote"></p>
+      <label for="gkey"><span data-i="gkeyL"></span><input id="gkey" autocomplete="off" placeholder="AIza…"></label>
+      <p class="note" style="margin:0" data-i="gkeyNote"></p>
+      <div class="two">
+        <label for="traffic"><span data-i="trafL"></span><select id="traffic"><option value="1.2" data-i="t1"></option><option value="1.4" data-i="t2"></option><option value="1.7" data-i="t3"></option><option value="2" data-i="t4"></option></select></label>
+        <label for="avg"><span data-i="avgL"></span><input id="avg" type="number" min="8" max="50" value="18"></label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend data-i="lg5"></legend>
+      <p class="note" style="margin:0" data-ih="helpNote"></p>
+      <label for="helper"><span data-i="helperL"></span><input id="helper" autocomplete="off" placeholder="https://mamatracker-helper.….workers.dev"></label>
+      <div class="two">
+        <label for="famCode"><span data-i="famL"></span><input id="famCode" autocomplete="off"></label>
+        <label for="phoneName"><span data-i="phoneL"></span><input id="phoneName" data-ph="phonePh"></label>
+      </div>
+      <div class="row"><button class="btn primary grow" type="button" id="pushOn" data-i="pushOn"></button></div>
+      <div class="row"><button class="btn grow" type="button" id="testBtn" data-i="testBtn"></button></div>
+      <p class="note" style="margin:0" id="pushState"></p>
+      <details><summary class="note" data-i="ntfyOld"></summary>
+        <label for="ntfy"><span data-i="ntfyL"></span><input id="ntfy" data-ph="ntfyPh"></label>
+      </details>
+    </fieldset>
+
+    <div class="row">
+      <button class="btn primary grow" value="save" id="saveBtn" data-i="saveBtn"></button>
+      <button class="btn" value="cancel" formnovalidate data-i="close"></button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+(() => {
+"use strict";
+const $ = id => document.getElementById(id);
+const store = {
+  get(){ try{return JSON.parse(localStorage.getItem("busWatch")||"{}")}catch(e){return {}} },
+  set(v){ try{localStorage.setItem("busWatch",JSON.stringify(v))}catch(e){} }
+};
+const LACASA=[12.904261,77.675845];
+const DEF = {
+  token:"", portal:"https://gps360.cpark.in", api:"https://hst-api.wialon.com", unitMask:"3270",
+  amStop:LACASA, pmStop:null, school:[12.891681,77.749808], schoolR:400,
+  aLeft:true, a1on:true, a1min:15, a2on:true, a2min:10, a3on:true, a3min:5, aArr:true, arrM:200,
+  amFrom:"06:00", amTo:"09:30", pmFrom:"13:00", pmTo:"18:00", days:"mon-sat",
+  helper:"", famCode:"", phoneName:"", pushOn:false, gkey:"", traffic:1.4, avg:18, road:1.35, ntfy:"",
+  lang: (navigator.language||"en").toLowerCase().startsWith("ja") ? "ja" : "en"
+};
+let S = Object.assign({}, DEF, store.get());
+if(S.home && !store.get().amStop){ S.amStop=S.home; } delete S.home;
+const BUILTIN_GKEY="AIzaSyDJagctK7lifCyDvOr5YlSM4IMpEMjLCAU"; // locked to kevinyusha-dotcom.github.io
+if(!S.gkey) S.gkey=BUILTIN_GKEY;
+const save = () => store.set(S);
+
+/* ---------- words ---------- */
+const W = {
+en:{
+  min:"min", toStop:"To stop", speed:"Speed", setupBtn:"⚙︎ Setup", gmBus:"📍 Bus in Google Maps", gmRoute:"🧭 Live traffic route",
+  demoBtn:"▶ Run a demo trip", fitBtn:"⤢ Show bus & stop", arm:"🔔 Turn on alerts", armed:"🔔 Alerts on · screen kept awake",
+  hint:"iPhone: open in Safari → Share → Add to Home Screen. Keep ママトラカ open with alerts on during bus times. For alerts on a locked phone, add an ntfy topic in Setup.",
+  am:"Morning pickup", pm:"Afternoon drop", laCasa:"La Casa stop", pickupStop:"pickup stop", dropStop:"drop stop", sameStop:"same stop as morning", sleep:" · alerts sleep outside bus times",
+  srcG:"Google live traffic", srcR:"road route ×{f} traffic", srcE:"rough estimate",
+  left:"Left TISB", nmin:"{n} min", atStop:"At stop", waiting:"waiting", noAlerts:"No alerts", noAlertsSub:"turn some on in Setup",
+  stNot:"Not connected", stConn:"Connecting…", stLive:"Live", stLast:"Last signal {x}", stDemo:"Demo trip", stNoKey:"No access key",
+  stReach:"Can't reach server", stKey:"Key rejected – sign in again", stLoad:"Can't load the bus", stNoBus:"No bus on this login", stNoPos:"No position yet",
+  hReach:"Couldn't load the tracking service. Check the internet connection and reload. If it keeps failing, try Data server https://hst-api.wialon.eu in Setup, then reload.",
+  hKey:"The access key was refused (code {c}). Open Setup, tap Sign in with Cpark, then Save & connect.",
+  hLoad:"Logged in, but the bus list failed (code {c}).", hNoBus:"This login has no vehicles. Check Bus name in Setup.", hErr:"Tracking service error: {e}",
+  tLeft:"🚌 Bus has left TISB", mLeft:"About {n} min to {stop}", mOnWay:"On its way",
+  tMin:"🚌 Bus is ~{n} min away", mMin:"{km} to {stop}", liveTraffic:" · live traffic",
+  tArr:"🚌 Bus is at {stop}", mBoard:"Time to board", mDrop:"Drop-off now",
+  thePickup:"the pickup stop", theDrop:"the drop stop",
+  tTest:"🚌 Test alert", mTest:"If you can read this, alerts are working",
+  fStop:"Stop set", fAm:"Morning stop set", fPm:"Afternoon stop set", fTap:"Tap the stop on the map",
+  fBad:"Couldn't read that. Paste coordinates like 12.9042, 77.6758", fSame:"Afternoon stop = morning stop",
+  fSigned:"Signed in. Tap Save & connect.", fGkey:"Google key not working – using road route instead", fDemoEnd:"Demo finished",
+  fNoStop:"Set a stop in Setup first", fApi:"Data server changed – reloading",
+  fMapNoKey:"Map labels stay local: Japanese map needs a Google Maps key (Setup ④)", fMapErr:"Google map didn't load – check the key allows Maps JavaScript API",
+  ttAm:"Morning pickup", ttPm:"Afternoon drop", ttSchool:"TISB zone",
+  now:"just now", mAgo:"{m} min ago", hAgo:"{h} h {m} min ago",
+  setupTitle:"ママトラカ Setup",
+  lg1:"1 · Connect to the bus", connNote:"Uses the parent login from the Cpark GPS360 app. Tap <b>Sign in with Cpark</b>, log in, and the key fills in. If no window opens, sign in, then paste the <code>access_token</code> value from the address bar here.",
+  signIn:"Sign in with Cpark", tokenL:"Access key (token)", tokenPh:"72-character key", portalL:"Login page", apiL:"Data server", unitL:"Bus name contains",
+  lg2:"2 · Stops", stopNote:"Paste a Google Maps link, coordinates (long-press the spot in Google Maps and copy the numbers) or an address. Or tap <b>Place on map</b>.",
+  amStopL:"Morning pickup stop", pmStopL:"Afternoon drop stop <span class=\"note\">(empty = same as morning)</span>", samePh:"same as morning",
+  set:"Set", place:"Place on map", schoolL:"School (TISB)", schoolRL:"School zone (m)",
+  lg3:"3 · Which alerts", onceNote:"Each alert fires once per morning and once per afternoon, however the bus loops around.",
+  aLeftL:"Bus left TISB <span class=\"u\">(afternoon)</span>", alertWhen:"Alert when bus is", minAway:"min away", arrL:"Bus reached the stop",
+  amFromL:"Morning from", amToL:"Morning to", pmFromL:"Afternoon from", pmToL:"Afternoon to", daysL:"Alert days",
+  d1:"Monday – Saturday", d2:"Monday – Friday", d3:"Every day",
+  lg4:"4 · Arrival time, traffic & map", trafNote:"Without a Google key, ママトラカ uses the real road route and adds your traffic factor. With a Google Maps key it uses Google's live-traffic time.",
+  gkeyL:"Google Maps API key (optional)", gkeyNote:"Enable Routes API (live traffic) and Maps JavaScript API (Japanese map) on this key.",
+  trafL:"Traffic factor", t1:"Light ×1.2", t2:"Normal ×1.4", t3:"Heavy ×1.7", t4:"Very heavy ×2", avgL:"Fallback speed (km/h)",
+  lg5:"5 · Lock-screen alerts", helpNote:"Alerts reach every family phone even when locked and ママトラカ is closed. Paste the helper link and family code from your Cloudflare setup, then tap the button on each phone. On iPhone, open ママトラカ from its home-screen icon first.",
+  helperL:"Helper link", famL:"Family code", phoneL:"This phone is", phonePh:"Kevin / Eiko", pushOn:"Turn on lock-screen alerts on this phone",
+  pushNeedHome:"On iPhone, alerts only work from the home-screen app. Open ママトラカ from its icon, then tap again.",
+  pushNeedHelper:"Enter the helper link and family code first.", pushDenied:"Notifications are blocked. Allow them in iPhone Settings → Notifications → ママトラカ.",
+  pushOk:"Lock-screen alerts are on for this phone ({n} phones in the family).", pushFail:"Couldn't turn on alerts: {e}", pushBadCode:"The family code is wrong.",
+  cfgSent:"Settings sent to the helper.", ntfyOld:"Old method: ntfy (optional)", ntfyL:"ntfy topic", ntfyPh:"e.g. tisb-r03-yourname-4821",
+  ntfyNote:"Install the free <b>ntfy</b> app, subscribe to the same topic, and alerts arrive even with the phone locked (while ママトラカ runs on one device). Pick a hard-to-guess name.",
+  testBtn:"Send a test alert to all phones", saveBtn:"Save & connect", close:"Close"
+},
+ja:{
+  min:"分", toStop:"停留所まで", speed:"速度", setupBtn:"⚙︎ 設定", gmBus:"📍 Googleマップでバスを見る", gmRoute:"🧭 渋滞ルートを見る",
+  demoBtn:"▶ デモ走行", fitBtn:"⤢ バスと停留所を表示", arm:"🔔 通知をオン", armed:"🔔 通知オン・画面スリープ防止中",
+  hint:"iPhone：Safariで開き、共有 →「ホーム画面に追加」。運行時間中は通知をオンにしてママトラカを開いたままにしてください。ロック中も通知を受けるには、設定でntfyトピックを追加します。",
+  am:"朝の乗車", pm:"午後の降車", laCasa:"ラ・カーサ停留所", pickupStop:"乗車停留所", dropStop:"降車停留所", sameStop:"朝と同じ停留所", sleep:"・運行時間外は通知オフ",
+  srcG:"Google 渋滞反映", srcR:"道路ルート ×{f}（渋滞係数）", srcE:"概算",
+  left:"TISB出発", nmin:"{n}分前", atStop:"到着", waiting:"待機中", noAlerts:"通知なし", noAlertsSub:"設定でオンにできます",
+  stNot:"未接続", stConn:"接続中…", stLive:"ライブ", stLast:"最終信号 {x}", stDemo:"デモ走行", stNoKey:"アクセスキーなし",
+  stReach:"サーバーに接続できません", stKey:"キーが無効・再ログイン", stLoad:"バス情報を取得できません", stNoBus:"バスが見つかりません", stNoPos:"位置情報なし",
+  hReach:"追跡サービスを読み込めませんでした。通信状況を確認して再読み込みしてください。改善しない場合は、設定のデータサーバーを https://hst-api.wialon.eu に変更してください。",
+  hKey:"アクセスキーが拒否されました（コード {c}）。設定を開き「Cparkでログイン」→「保存して接続」をタップしてください。",
+  hLoad:"ログインはできましたが、バス一覧の取得に失敗しました（コード {c}）。", hNoBus:"このアカウントには車両がありません。設定の「バス名」を確認してください。", hErr:"追跡サービスのエラー：{e}",
+  tLeft:"🚌 バスがTISBを出発しました", mLeft:"{stop}まで約{n}分", mOnWay:"向かっています",
+  tMin:"🚌 バスがあと約{n}分で到着", mMin:"{stop}まで{km}", liveTraffic:"・渋滞反映",
+  tArr:"🚌 バスが{stop}に到着しました", mBoard:"乗車の時間です", mDrop:"まもなく降車です",
+  thePickup:"乗車停留所", theDrop:"降車停留所",
+  tTest:"🚌 テスト通知", mTest:"この通知が見えれば設定完了です",
+  fStop:"停留所を設定しました", fAm:"朝の停留所を設定しました", fPm:"午後の停留所を設定しました", fTap:"地図上で停留所をタップしてください",
+  fBad:"読み取れませんでした。12.9042, 77.6758 の形式で入力してください", fSame:"午後の停留所＝朝の停留所",
+  fSigned:"ログインしました。「保存して接続」をタップしてください", fGkey:"Googleキーが使えません。道路ルートで計算します", fDemoEnd:"デモ終了",
+  fNoStop:"先に設定で停留所を登録してください", fApi:"データサーバーを変更しました。再読み込みします",
+  fMapNoKey:"地図を日本語にするにはGoogleマップのAPIキーが必要です（設定④）", fMapErr:"Googleマップを読み込めません。キーでMaps JavaScript APIが有効か確認してください",
+  ttAm:"朝の乗車", ttPm:"午後の降車", ttSchool:"TISBエリア",
+  now:"たった今", mAgo:"{m}分前", hAgo:"{h}時間{m}分前",
+  setupTitle:"ママトラカ 設定",
+  lg1:"① バスに接続", connNote:"Cpark GPS360アプリの保護者ログインを使います。<b>Cparkでログイン</b>をタップしてログインすると、キーが自動入力されます。画面が開かない場合は、ログイン後アドレスバーの <code>access_token</code> の値をここに貼り付けてください。",
+  signIn:"Cparkでログイン", tokenL:"アクセスキー（トークン）", tokenPh:"72文字のキー", portalL:"ログインページ", apiL:"データサーバー", unitL:"バス名（含む文字）",
+  lg2:"② 停留所", stopNote:"Googleマップのリンク、座標（Googleマップで長押ししてコピー）、または住所を貼り付けます。<b>地図で指定</b>も使えます。",
+  amStopL:"朝の乗車停留所", pmStopL:"午後の降車停留所 <span class=\"note\">（空欄＝朝と同じ）</span>", samePh:"朝と同じ",
+  set:"設定", place:"地図で指定", schoolL:"学校（TISB）", schoolRL:"学校エリア（m）",
+  lg3:"③ 通知の選択", onceNote:"各通知は朝・午後それぞれ1回だけ届きます。バスが周回しても重複しません。",
+  aLeftL:"TISB出発 <span class=\"u\">（午後）</span>", alertWhen:"到着の", minAway:"分前に通知", arrL:"停留所に到着",
+  amFromL:"朝 開始", amToL:"朝 終了", pmFromL:"午後 開始", pmToL:"午後 終了", daysL:"通知する曜日",
+  d1:"月〜土", d2:"月〜金", d3:"毎日",
+  lg4:"④ 到着時間・渋滞・地図", trafNote:"Googleキーがない場合は、実際の道路ルートに渋滞係数をかけて計算します。Googleマップのキーがあれば、Googleの渋滞反映時間を使います。",
+  gkeyL:"GoogleマップAPIキー（任意）", gkeyNote:"このキーで Routes API（渋滞）と Maps JavaScript API（日本語地図）を有効にしてください。",
+  trafL:"渋滞係数", t1:"少ない ×1.2", t2:"普通 ×1.4", t3:"多い ×1.7", t4:"非常に多い ×2", avgL:"予備の平均速度（km/h）",
+  lg5:"⑤ ロック画面の通知", helpNote:"ロック中やママトラカを閉じていても、家族全員のスマホに通知が届きます。Cloudflareで設定したヘルパーのリンクと家族コードを入力し、各スマホでボタンをタップしてください。iPhoneでは先にホーム画面のアイコンからママトラカを開いてください。",
+  helperL:"ヘルパーのリンク", famL:"家族コード", phoneL:"このスマホは", phonePh:"Kevin / Eiko", pushOn:"このスマホでロック画面の通知をオン",
+  pushNeedHome:"iPhoneではホーム画面のアプリからのみ通知を受け取れます。アイコンからママトラカを開き、もう一度タップしてください。",
+  pushNeedHelper:"先にヘルパーのリンクと家族コードを入力してください。", pushDenied:"通知がブロックされています。iPhoneの設定 → 通知 → ママトラカ で許可してください。",
+  pushOk:"このスマホでロック画面の通知がオンになりました（家族で{n}台）。", pushFail:"通知をオンにできませんでした：{e}", pushBadCode:"家族コードが違います。",
+  cfgSent:"設定をヘルパーに送りました。", ntfyOld:"旧方式：ntfy（任意）", ntfyL:"ntfyトピック", ntfyPh:"例：tisb-r03-yourname-4821",
+  ntfyNote:"無料の <b>ntfy</b> アプリを入れて同じトピックを購読すると、ロック中でも通知が届きます（どこか1台でママトラカを開いている間）。推測されにくい名前にしてください。",
+  testBtn:"全員のスマホにテスト通知", saveBtn:"保存して接続", close:"閉じる"
+}};
+const t = (k,v) => { let s=(W[S.lang]&&W[S.lang][k])||W.en[k]||k; if(v) for(const x in v) s=s.split("{"+x+"}").join(v[x]); return s; };
+const loc = () => S.lang==="ja"?"ja-JP":undefined;
+
+/* ---------- geometry ---------- */
+function hav(a,b){ const R=6371,r=Math.PI/180,dLa=(b[0]-a[0])*r,dLo=(b[1]-a[1])*r;
+  const h=Math.sin(dLa/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dLo/2)**2; return 2*R*Math.asin(Math.sqrt(h)); }
+function parseLL(s){
+  if(!s) return null; s=String(s);
+  const m=s.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)||s.match(/[?&](?:q|query|ll|destination)=(-?\d+\.\d+),\s*(-?\d+\.\d+)/)||s.match(/(-?\d{1,2}\.\d{3,})\s*,\s*(-?\d{1,3}\.\d{3,})/);
+  return m?[+m[1],+m[2]]:null;
+}
+async function geocode(q){
+  const r=await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=in&q="+encodeURIComponent(q));
+  const j=await r.json(); return j[0]?[+j[0].lat,+j[0].lon]:null;
+}
+const r6 = ll => [+(+ll[0]).toFixed(6),+(+ll[1]).toFixed(6)];
+
+/* ---------- trip context ---------- */
+function dayOK(d){ const w=d.getDay(); if(S.days==="mon-sat"&&w===0) return false; if(S.days==="mon-fri"&&(w===0||w===6)) return false; return true; }
+function trip(){
+  const d=new Date(), hm=d.toTimeString().slice(0,5), date=d.toISOString().slice(0,10);
+  const inAm=hm>=S.amFrom&&hm<=S.amTo, inPm=hm>=S.pmFrom&&hm<=S.pmTo;
+  const kind = demoKind || (inAm?"am":inPm?"pm":(d.getHours()<12?"am":"pm"));
+  const active = !!demoKind || (dayOK(d)&&(inAm||inPm));
+  const stop = kind==="am" ? S.amStop : (S.pmStop||S.amStop);
+  return {kind, active, stop, key: demoKind?"demo":(date+"-"+kind)};
+}
+
+/* ---------- map (OpenStreetMap in English; official Google map in Japanese when a key is set) ---------- */
+const map = L.map("map").setView(S.school,13);
+const osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map);
+let gLayer=null, gLoad=null, baseNow="osm";
+function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement("script"); s.src=src; s.onload=res; s.onerror=rej; document.head.appendChild(s); }); }
+function loadGoogleJa(){
+  if(gLoad) return gLoad;
+  gLoad=new Promise((res,rej)=>{
+    window.__mamaGm=()=>res();
+    window.gm_authFailure=()=>{ rej(new Error("auth")); };
+    loadScript("https://maps.googleapis.com/maps/api/js?key="+encodeURIComponent(S.gkey)+"&language=ja&region=JP&callback=__mamaGm").catch(rej);
+  }).then(()=>loadScript("https://cdn.jsdelivr.net/npm/leaflet.gridlayer.googlemutant@0.16.0/dist/Leaflet.GoogleMutant.js"));
+  gLoad.catch(()=>{ gLoad=null; });
+  return gLoad;
+}
+async function applyMapLang(){
+  if(S.lang==="ja"){
+    if(!S.gkey){ if(baseNow!=="osm"){ map.removeLayer(gLayer); osm.addTo(map); baseNow="osm"; } return "nokey"; }
+    try{ await loadGoogleJa(); if(!gLayer) gLayer=L.gridLayer.googleMutant({type:"roadmap",maxZoom:20});
+      if(baseNow!=="g"){ map.removeLayer(osm); gLayer.addTo(map); baseNow="g"; } return "ok"; }
+    catch(e){ flash(t("fMapErr")); return "err"; }
+  }
+  if(baseNow==="g"){ map.removeLayer(gLayer); osm.addTo(map); baseNow="osm"; }
+  return "ok";
+}
+const icon = (cls,tx) => L.divIcon({className:"",html:`<div class="${cls}">${tx}</div>`,iconSize:[34,34],iconAnchor:[17,30]});
+const busM = L.marker(S.school,{icon:L.divIcon({className:"",html:'<div class="busicon">🚌</div>',iconSize:[34,34],iconAnchor:[17,17]}),zIndexOffset:1000});
+const amM = L.marker(S.school,{icon:icon("stopicon","🌅"),draggable:true}).bindTooltip("");
+const pmM = L.marker(S.school,{icon:icon("stopicon","🏠"),draggable:true}).bindTooltip("");
+const schoolM = L.circle(S.school,{radius:S.schoolR,color:"#2f6fb2",weight:2,fillOpacity:.08}).addTo(map).bindTooltip("");
+const arrC = L.circle(S.school,{radius:1,color:"#2f8a5b",weight:2,fillOpacity:.12});
+const trail = L.polyline([],{color:"#f5b400",weight:5,opacity:.85}).addTo(map);
+amM.on("dragend",()=>setStop("am",[amM.getLatLng().lat,amM.getLatLng().lng]));
+pmM.on("dragend",()=>setStop("pm",[pmM.getLatLng().lat,pmM.getLatLng().lng]));
+let tapMode=null;
+map.on("click",e=>{ if(!tapMode) return; setStop(tapMode,[e.latlng.lat,e.latlng.lng]); flash(t(tapMode==="am"?"fAm":"fPm")); tapMode=null; });
+function drawStops(){
+  schoolM.setLatLng(S.school).setRadius(S.schoolR);
+  if(S.amStop) amM.setLatLng(S.amStop).addTo(map); else map.removeLayer(amM);
+  if(S.pmStop) pmM.setLatLng(S.pmStop).addTo(map); else map.removeLayer(pmM);
+  const tr=trip(); if(tr.stop){ arrC.setLatLng(tr.stop).setRadius(S.arrM).addTo(map); } else map.removeLayer(arrC);
+}
+function setStop(which,ll){ if(which==="am") S.amStop=r6(ll); else S.pmStop=ll?r6(ll):null; save(); drawStops(); fillStopInputs(); eta.reset(); refreshEta(true).then(render); render(); }
+
+/* ---------- arrival-time engine: Google live traffic → road route × traffic → rough ---------- */
+const eta = { min:null, src:"estimate", km:null, gAt:0, oAt:0, oFrom:null, oSec:null, gErr:false,
+  reset(){ this.oAt=0; this.gAt=0; this.oSec=null; this.oFrom=null; } };
+function roughMin(ll,stop){ return hav(ll,stop)*S.road/S.avg*60; }
+async function osrm(ll,stop){
+  const u=`https://router.project-osrm.org/route/v1/driving/${ll[1]},${ll[0]};${stop[1]},${stop[0]}?overview=false`;
+  const j=await (await fetch(u)).json(); if(j.code!=="Ok") throw new Error(j.code);
+  return {sec:j.routes[0].duration, km:j.routes[0].distance/1000};
+}
+async function googleTraffic(ll,stop){
+  const r=await fetch("https://routes.googleapis.com/directions/v2:computeRoutes",{method:"POST",
+    headers:{"Content-Type":"application/json","X-Goog-Api-Key":S.gkey,"X-Goog-FieldMask":"routes.duration,routes.distanceMeters"},
+    body:JSON.stringify({origin:{location:{latLng:{latitude:ll[0],longitude:ll[1]}}},destination:{location:{latLng:{latitude:stop[0],longitude:stop[1]}}},travelMode:"DRIVE",routingPreference:"TRAFFIC_AWARE"})});
+  const j=await r.json(); if(!j.routes||!j.routes[0]) throw new Error((j.error&&j.error.message)||"no route");
+  return {sec:parseInt(j.routes[0].duration,10), km:j.routes[0].distanceMeters/1000};
+}
+let etaBusy=false;
+async function refreshEta(force){
+  const tr=trip(); if(!bus||!tr.stop){ eta.min=null; return; }
+  const ll=[bus.lat,bus.lng], now=Date.now(), rough=roughMin(ll,tr.stop);
+  eta.km=hav(ll,tr.stop);
+  if(eta.min===null||eta.src==="estimate"){ eta.min=rough; }
+  if(etaBusy) return; etaBusy=true;
+  try{
+    if(S.gkey && !demo && !eta.gErr && rough<=40 && (force||now-eta.gAt>90000)){
+      try{ const g=await googleTraffic(ll,tr.stop); eta.gAt=now; eta.min=g.sec/60; eta.km=g.km; eta.src="google"; return; }
+      catch(e){ eta.gErr=true; flash(t("fGkey")); }
+    }
+    if(eta.src==="google" && now-eta.gAt<120000){ return; }
+    const moved = eta.oFrom? hav(eta.oFrom,ll) : 99;
+    if(force||now-eta.oAt>45000||moved>0.25){
+      try{ const o=await osrm(ll,tr.stop); eta.oAt=now; eta.oFrom=ll; eta.oSec=o.sec; eta.km=o.km; }catch(e){}
+    }
+    if(eta.oSec!==null){
+      const since=(now-eta.oAt)/1000*(bus.spd>3?1:0);
+      eta.min=Math.max(0,(eta.oSec*S.traffic - since)/60); eta.src="road";
+    }else{ eta.min=rough; eta.src="estimate"; }
+  } finally { etaBusy=false; }
+}
+
+/* ---------- Wialon (Cpark) connection via official Wialon browser SDK ---------- */
+let sid=null, pollT=null, demo=null, demoKind=null, sess=null, unitObj=null, sdkP=null, stKey="stNot", stCls="off", stArg=null, hintKey="hint", hintArg=null;
+function loadSDK(){
+  if(window.wialon) return Promise.resolve();
+  if(sdkP) return sdkP;
+  sdkP=loadScript(S.api.replace(/\/$/,"")+"/wsdk/script/wialon.js"); sdkP.catch(()=>{sdkP=null});
+  return sdkP;
+}
+function setHint(k,a){ hintKey=k; hintArg=a||null; $("hint").textContent=t(k,hintArg); }
+function fail(k,h,a){ sid=null; setStatus("off",k); setHint(h,a); }
+async function connect(){
+  stopDemo();
+  if(!S.token){ setStatus("off","stNoKey"); return; }
+  setStatus("","stConn");
+  try{ await loadSDK(); }catch(e){ return fail("stReach","hReach"); }
+  try{
+    if(!sess){ sess=wialon.core.Session.getInstance(); sess.initSession(S.api.replace(/\/$/,"")); }
+    if(sess.getCurrUser && sess.getCurrUser()){ return afterLogin(); }
+    sess.loginToken(S.token,"",code=>{ if(code) return fail("stKey","hKey",{c:code}); afterLogin(); });
+  }catch(e){ fail("stReach","hErr",{e:e.message}); }
+}
+function afterLogin(){
+  sid="ok";
+  const flags=wialon.item.Item.dataFlag.base|wialon.item.Unit.dataFlag.lastMessage;
+  sess.updateDataFlags([{type:"type",data:"avl_unit",flags:flags,mode:0}],code=>{
+    if(code) return fail("stLoad","hLoad",{c:code});
+    const units=sess.getItems("avl_unit")||[];
+    unitObj=units.find(u=>S.unitMask && u.getName().includes(S.unitMask))||units[0];
+    if(!unitObj) return fail("stNoBus","hNoBus");
+    $("unitName").textContent=unitObj.getName().replace(/^\(.*?\)\s*/,"");
+    unitObj.addListener("changePosition",()=>{ if(!demo) poll(false); });
+    setHint("hint");
+    poll(true);
+    clearInterval(pollT); pollT=setInterval(()=>poll(false),15000);
+  });
+}
+function poll(first){
+  if(!unitObj||demo) return;
+  const pos=unitObj.getPosition();
+  if(!pos){ setStatus("stale","stNoPos"); return; }
+  update({lat:pos.y,lng:pos.x,spd:pos.s||0,t:pos.t},first);
+}
+
+/* ---------- state + alerts (each alert once per trip window) ---------- */
+let bus=null, lastLL=null, T={key:null,fired:{},wasInSchool:false};
+function alertList(kind){
+  const Lst=[];
+  if(kind==="pm"&&S.aLeft) Lst.push({id:"left"});
+  [["a1",S.a1on,S.a1min],["a2",S.a2on,S.a2min],["a3",S.a3on,S.a3min]].filter(a=>a[1]).sort((x,y)=>y[2]-x[2])
+    .forEach(a=>Lst.push({id:a[0],min:+a[2]}));
+  if(S.aArr) Lst.push({id:"arr"});
+  return Lst;
+}
+const aLabel = a => a.id==="left"?t("left"):a.id==="arr"?t("atStop"):t("nmin",{n:a.min});
+async function update(p,fit){
+  const ll=[p.lat,p.lng]; bus=p;
+  busM.setLatLng(ll).addTo(map);
+  if(!lastLL||hav(lastLL,ll)>0.01){ trail.addLatLng(ll); if(trail.getLatLngs().length>500) trail.setLatLngs(trail.getLatLngs().slice(-500)); lastLL=ll; }
+  const age=(Date.now()/1000-p.t)/60;
+  if(demo) setStatus("demo","stDemo"); else if(age>10) setStatus("stale","stLast",{x:null}); else setStatus("live","stLive");
+  render();
+  await refreshEta(fit);
+  checkAlerts(ll,age);
+  render();
+  if(fit) fitAll();
+}
+function checkAlerts(ll,ageMin){
+  const tr=trip(); if(!tr.stop) return;
+  if(T.key!==tr.key){ T={key:tr.key,fired:{},wasInSchool:false}; }
+  if(ageMin>15 && !demo) return;
+  const now=Date.now(), dS=hav(ll,S.school)*1000, dStop=hav(ll,tr.stop)*1000, list=alertList(tr.kind), F=T.fired;
+  const say=(id,title,msg)=>{ F[id]=now; if(tr.active){ alertOut(title,msg); setTimeout(fitAll,50); } }; // re-frame bus + stop at every alert
+  const stopName = t(tr.kind==="am"?"thePickup":"theDrop");
+  if(dS<=S.schoolR) T.wasInSchool=true;
+  if(list.some(a=>a.id==="left") && T.wasInSchool && dS>S.schoolR && !F.left){ T.wasInSchool=false;
+    say("left",t("tLeft"), eta.min!==null?t("mLeft",{n:Math.round(eta.min),stop:stopName}):t("mOnWay")); }
+  if(F.arr) return;
+  if(list.some(a=>a.id==="arr") && dStop<=S.arrM){
+    list.forEach(a=>{ if(a.min&&!F[a.id]) F[a.id]=now; });
+    say("arr",t("tArr",{stop:stopName}), t(tr.kind==="am"?"mBoard":"mDrop")); return;
+  }
+  if(eta.min===null) return;
+  const due=list.filter(a=>a.min && !F[a.id] && eta.min<=a.min);
+  if(due.length){ const tight=due[due.length-1]; due.forEach(a=>F[a.id]=now);
+    say(tight.id,t("tMin",{n:tight.min}), t("mMin",{km:fmtKm(eta.km||dStop/1000),stop:stopName})+(eta.src==="google"?t("liveTraffic"):"")); }
+}
+
+let armed=false, actx=null, wake=null;
+function beep(){
+  if(!actx) return;
+  [0,0.35,0.7].forEach((o,i)=>{ const os=actx.createOscillator(), g=actx.createGain();
+    os.frequency.value=i===2?988:784; g.gain.setValueAtTime(0.0001,actx.currentTime+o);
+    g.gain.exponentialRampToValueAtTime(0.4,actx.currentTime+o+0.02); g.gain.exponentialRampToValueAtTime(0.0001,actx.currentTime+o+0.3);
+    os.connect(g).connect(actx.destination); os.start(actx.currentTime+o); os.stop(actx.currentTime+o+0.32); });
+}
+function alertOut(title,msg){
+  flash(title+" — "+msg,true);
+  if(armed){ beep(); try{navigator.vibrate&&navigator.vibrate([300,150,300,150,600])}catch(e){}
+    try{ if("speechSynthesis" in window){ const u=new SpeechSynthesisUtterance(title.replace(/🚌\s*/,"")); u.lang=S.lang==="ja"?"ja-JP":"en-IN"; speechSynthesis.speak(u); } }catch(e){} }
+  try{ if("Notification" in window && Notification.permission==="granted") new Notification(title,{body:msg,tag:"bus"}); }catch(e){}
+  if(S.ntfy && !S.pushOn){ fetch("https://ntfy.sh/"+encodeURIComponent(S.ntfy)+"?t="+encodeURIComponent("ママトラカ: "+title.replace(/🚌\s*/,""))+"&p=5&tags=bus",{method:"POST",body:msg}).catch(()=>{}); }
+}
+async function arm(){
+  armed=!armed;
+  if(armed){
+    try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)(); await actx.resume(); }catch(e){}
+    try{ if("Notification" in window && Notification.permission==="default") await Notification.requestPermission(); }catch(e){}
+    try{ if("wakeLock" in navigator) wake=await navigator.wakeLock.request("screen"); }catch(e){}
+    beep();
+  }else{ try{wake&&wake.release()}catch(e){} wake=null; }
+  paintArm();
+}
+function paintArm(){ const b=$("armBtn"); b.textContent=t(armed?"armed":"arm"); b.classList.toggle("armed",armed); b.classList.toggle("primary",!armed); }
+document.addEventListener("visibilitychange",async()=>{ if(armed&&document.visibilityState==="visible"&&"wakeLock" in navigator){ try{wake=await navigator.wakeLock.request("screen")}catch(e){} } });
+
+/* ---------- rendering ---------- */
+const fmtKm = k => k<1 ? Math.round(k*1000)+" m" : k.toFixed(1)+" km";
+const hm = x => new Date(x).toLocaleTimeString(loc(), {hour:"numeric",minute:"2-digit"});
+function ago(ts){ const m=Math.round((Date.now()/1000-ts)/60); if(m<1) return t("now"); if(m<60) return t("mAgo",{m}); const h=Math.floor(m/60);
+  return h<24? t("hAgo",{h,m:m%60}) : new Date(ts*1000).toLocaleString(loc(), {day:"numeric",month:"short",hour:"numeric",minute:"2-digit"}); }
+function setStatus(cls,k,a){ stCls=cls; stKey=k; stArg=a||null; paintStatus(); }
+function paintStatus(){ const s=$("status"); s.className="chip "+stCls; s.textContent = stKey==="stLast"&&bus ? t("stLast",{x:ago(bus.t)}) : t(stKey,stArg); }
+function sameLL(a,b){ return a&&b&&Math.abs(a[0]-b[0])<1e-5&&Math.abs(a[1]-b[1])<1e-5; }
+function render(){
+  const tr=trip();
+  const stopLbl = tr.kind==="am" ? (sameLL(S.amStop,LACASA)?t("laCasa"):t("pickupStop")) : (S.pmStop?t("dropStop"):t("sameStop"));
+  $("tripLine").innerHTML = t(tr.kind)+" · <b>"+stopLbl+"</b>"+(tr.active?"":t("sleep"));
+  const m=eta.min;
+  $("etaBig").innerHTML = ((bus&&tr.stop&&m!==null) ? (m<1?"&lt;1":Math.round(m)) : "--")+"<small>"+t("min")+"</small>";
+  const showM = bus&&tr.stop&&m!==null;
+  $("etaTopN").textContent = showM ? (m<1?"<1":Math.round(m)) : "--";
+  $("etaTopU").textContent = t("min");
+  $("etaTopD").textContent = showM ? fmtKm(eta.km!==null?eta.km:hav([bus.lat,bus.lng],tr.stop)) : "";
+  const tightest = Math.min(...alertList(tr.kind).filter(a=>a.min).map(a=>a.min), 5);
+  document.querySelector(".etaTop").classList.toggle("soon", showM && m<=tightest);
+  const src=$("etaSrc"); src.className="src "+(eta.src==="google"?"g":eta.src==="road"?"r":"");
+  src.textContent = eta.src==="google"?t("srcG"):eta.src==="road"?t("srcR",{f:S.traffic}):t("srcE");
+  $("dist").textContent = bus&&tr.stop ? fmtKm(eta.km!==null?eta.km:hav([bus.lat,bus.lng],tr.stop)) : "--";
+  $("speed").textContent = bus ? Math.round(bus.spd)+" km/h" : "--";
+  $("fix").textContent = bus ? ago(bus.t) : "--";
+  const list=alertList(tr.kind), F=(T.key===tr.key)?T.fired:{};
+  let next=false;
+  $("ladder").innerHTML = list.length? list.map(a=>{ const done=!!F[a.id]; let cls="step"+(done?" done":""); if(!done&&!next){cls+=" next";next=true;}
+    return `<div class="${cls}"><b>${aLabel(a)}</b><span>${done?hm(F[a.id]):t("waiting")}</span></div>`; }).join("")
+    : `<div class="step"><b>${t("noAlerts")}</b><span>${t("noAlertsSub")}</span></div>`;
+  const q = bus?`${bus.lat},${bus.lng}`:S.school.join(",");
+  const hl = S.lang==="ja"?"&hl=ja":"";
+  $("gmBus").href=`https://www.google.com/maps/search/?api=1&query=${q}${hl}`;
+  $("gmRoute").href = tr.stop ? `https://www.google.com/maps/dir/?api=1&origin=${q}&destination=${tr.stop.join(",")}&travelmode=driving${hl}` : $("gmBus").href;
+  paintStatus();
+}
+function applyLang(){
+  document.documentElement.lang=S.lang;
+  document.querySelectorAll("[data-i]").forEach(el=>el.textContent=t(el.dataset.i));
+  document.querySelectorAll("[data-ih]").forEach(el=>el.innerHTML=t(el.dataset.ih));
+  document.querySelectorAll("[data-ph]").forEach(el=>el.placeholder=t(el.dataset.ph));
+  $("lnEn").setAttribute("aria-pressed",S.lang==="en"); $("lnJa").setAttribute("aria-pressed",S.lang==="ja");
+  amM.setTooltipContent(t("ttAm")); pmM.setTooltipContent(t("ttPm")); schoolM.setTooltipContent(t("ttSchool"));
+  $("hint").textContent=t(hintKey,hintArg); paintArm(); render();
+}
+async function setLang(l){
+  S.lang=l; save(); applyLang(); swSettings();
+  const r=await applyMapLang(); if(l==="ja"&&r==="nokey") flash(t("fMapNoKey"));
+}
+$("lnEn").onclick=()=>setLang("en"); $("lnJa").onclick=()=>setLang("ja");
+let toastT=null;
+function flash(x,big){ const el=$("toast"); el.textContent=x; el.style.background=big?"var(--stop)":"var(--ink)"; el.style.color=big?"#fff":"var(--paper)"; el.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>el.hidden=true,big?12000:3000); }
+function fitAll(){ // bus + active stop only; TISB is added only when there is no bus position yet
+  const tr=trip(), pts=[];
+  if(bus) pts.push([bus.lat,bus.lng]);
+  if(tr.stop) pts.push(tr.stop);
+  if(pts.length<2) pts.push(S.school);
+  map.fitBounds(L.latLngBounds(pts).pad(0.25),{maxZoom:16,animate:true});
+}
+
+/* ---------- demo trip (afternoon: TISB → drop stop) ---------- */
+function stopDemo(){ if(demo){ clearInterval(demo); demo=null; demoKind=null; } }
+function runDemo(){
+  stopDemo(); demoKind="pm";
+  const tr=trip(); if(!tr.stop){ demoKind=null; flash(t("fNoStop")); return; }
+  T={key:null,fired:{},wasInSchool:false}; trail.setLatLngs([]); lastLL=null; eta.reset(); eta.src="estimate";
+  const a=S.school, b=tr.stop, mid=[(a[0]+b[0])/2+0.01,(a[1]+b[1])/2+0.004];
+  const pts=[]; for(let i=0;i<=150;i++){ const s=i/150,u=1-s; pts.push([u*u*a[0]+2*u*s*mid[0]+s*s*b[0], u*u*a[1]+2*u*s*mid[1]+s*s*b[1]]); }
+  let i=0; bus={lat:a[0],lng:a[1],spd:0,t:Date.now()/1000}; busM.setLatLng(a).addTo(map);
+  eta.min=30; eta.km=hav(a,b); setStatus("demo","stDemo"); checkAlerts(a,0); render(); fitAll();
+  demo=setInterval(()=>{ i++;
+    if(i>=pts.length){ stopDemo(); flash(t("fDemoEnd")); eta.reset(); poll(true); return; }
+    const p=pts[i];
+    bus={lat:p[0],lng:p[1],spd:24,t:Date.now()/1000};
+    eta.src="estimate"; eta.min=(150-i)*0.2; eta.km=hav(p,b);
+    busM.setLatLng(p).addTo(map); trail.addLatLng(p);
+    checkAlerts(p,0); render();
+  },400);
+}
+
+/* ---------- setup sheet ---------- */
+const F=["token","portal","api","unitMask","schoolR","amFrom","amTo","pmFrom","pmTo","days","gkey","traffic","avg","ntfy","helper","famCode","phoneName","a1min","a2min","a3min","arrM"];
+const CB=["aLeft","a1on","a2on","a3on","aArr"];
+const NUM=["schoolR","traffic","avg","a1min","a2min","a3min","arrM"];
+function fillStopInputs(){ $("amStopIn").value=S.amStop?S.amStop.join(", "):""; $("pmStopIn").value=S.pmStop?S.pmStop.join(", "):""; $("schoolIn").value=S.school.join(", "); }
+function openSheet(){ F.forEach(k=>$(k).value=S[k]); CB.forEach(k=>$(k).checked=!!S[k]); fillStopInputs(); $("sheet").showModal(); }
+$("settingsBtn").onclick=openSheet;
+async function readStop(v){ v=v.trim(); if(!v) return null; let ll=parseLL(v); if(!ll){ try{ll=await geocode(v)}catch(e){} } return ll; }
+$("form").addEventListener("submit",async e=>{
+  if(e.submitter&&e.submitter.value!=="save") return;
+  const oldApi=S.api, oldTok=S.token, oldKey=S.gkey;
+  F.forEach(k=>{ const v=String($(k).value).trim(); S[k]=NUM.includes(k)?(+v||DEF[k]):v; });
+  CB.forEach(k=>S[k]=$(k).checked);
+  const sc=parseLL($("schoolIn").value); if(sc) S.school=sc;
+  const am=await readStop($("amStopIn").value); if(am) S.amStop=r6(am);
+  const pmv=$("pmStopIn").value.trim(); if(!pmv) S.pmStop=null; else { const pm=await readStop(pmv); if(pm) S.pmStop=r6(pm); }
+  eta.gErr=false; eta.reset(); save(); drawStops(); render();
+  if(S.api!==oldApi && sess){ flash(t("fApi")); setTimeout(()=>location.reload(),800); return; }
+  if(S.gkey!==oldKey && gLoad){ setTimeout(()=>location.reload(),300); return; } // Google map is tied to the key it loaded with
+  sendConfig(false); swSettings();
+  if(S.lang==="ja") applyMapLang();
+  if(S.token!==oldTok || !sid) connect(); else refreshEta(true).then(render);
+});
+document.querySelectorAll("[data-set]").forEach(b=>b.onclick=async()=>{
+  const w=b.dataset.set, v=$(w==="am"?"amStopIn":"pmStopIn").value;
+  if(w==="pm"&&!v.trim()){ setStop("pm",null); flash(t("fSame")); return; }
+  const ll=await readStop(v); if(ll){ setStop(w,ll); map.setView(ll,15); flash(t("fStop")); } else flash(t("fBad"));
+});
+document.querySelectorAll("[data-tap]").forEach(b=>b.onclick=()=>{ tapMode=b.dataset.tap; $("sheet").close(); flash(t("fTap")); });
+/* ---------- helper (lock-screen alerts) ---------- */
+const H = () => (S.helper||"").trim().replace(/\/$/,"");
+async function hfetch(path,body){
+  const r=await fetch(H()+path,{method:body?"POST":"GET",headers:{"Content-Type":"application/json","X-Family-Code":S.famCode||""},body:body?JSON.stringify(body):undefined});
+  const j=await r.json().catch(()=>({})); if(r.status===401) throw new Error(t("pushBadCode")); if(!r.ok) throw new Error(j.error||("HTTP "+r.status)); return j;
+}
+function helperConfig(){ const c={}; ["token","api","unitMask","amStop","pmStop","school","schoolR","aLeft","a1on","a1min","a2on","a2min","a3on","a3min","aArr","arrM","amFrom","amTo","pmFrom","pmTo","days","gkey","traffic","avg","road"].forEach(k=>c[k]=S[k]);
+  c.tzOff=-new Date().getTimezoneOffset(); c.site=location.origin+"/"; return c; }
+async function sendConfig(quiet){ if(!H()||!S.famCode) return; try{ await hfetch("/config",helperConfig()); if(!quiet) flash(t("cfgSent")); }catch(e){ if(!quiet) flash(t("pushFail",{e:e.message})); } }
+async function swSettings(){ try{ const c=await caches.open("mama-settings"); await c.put(new Request("settings.json"), new Response(JSON.stringify({helper:H(),lang:S.lang}),{headers:{"Content-Type":"application/json"}})); }catch(e){} }
+function b64uToBytes(s){ s=s.replace(/-/g,"+").replace(/_/g,"/"); const b=atob(s+"===".slice((s.length+3)%4)); return Uint8Array.from(b,c=>c.charCodeAt(0)); }
+function pushMsg(m){ $("pushState").textContent=m; flash(m); }
+$("pushOn").onclick=async()=>{
+  S.helper=$("helper").value.trim(); S.famCode=$("famCode").value.trim(); S.phoneName=$("phoneName").value.trim(); save();
+  if(!H()||!S.famCode) return pushMsg(t("pushNeedHelper"));
+  const standalone = window.navigator.standalone===true || matchMedia("(display-mode: standalone)").matches;
+  if(!("serviceWorker" in navigator) || !("PushManager" in window)) return pushMsg(standalone?t("pushFail",{e:"push not supported"}):t("pushNeedHome"));
+  try{
+    const perm = await Notification.requestPermission();
+    if(perm!=="granted") return pushMsg(t("pushDenied"));
+    const reg = await navigator.serviceWorker.register("sw.js");
+    await navigator.serviceWorker.ready;
+    const {publicKey} = await hfetch("/vapid");
+    let sub = await reg.pushManager.getSubscription();
+    if(sub){ const cur=sub.options&&sub.options.applicationServerKey; if(cur && btoa(String.fromCharCode(...new Uint8Array(cur)))!==btoa(String.fromCharCode(...b64uToBytes(publicKey)))){ await sub.unsubscribe(); sub=null; } }
+    if(!sub) sub = await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:b64uToBytes(publicKey)});
+    await swSettings();
+    const r = await hfetch("/subscribe",{sub:sub.toJSON(), name:S.phoneName||"phone"});
+    await sendConfig(true);
+    S.pushOn=true; save(); pushMsg(t("pushOk",{n:r.phones}));
+  }catch(e){ pushMsg(t("pushFail",{e:e.message})); }
+};
+$("testBtn").onclick=async()=>{
+  S.ntfy=$("ntfy").value.trim(); S.helper=$("helper").value.trim(); S.famCode=$("famCode").value.trim(); save();
+  if(H()&&S.famCode){ try{ const r=await hfetch("/test",{}); pushMsg(t("pushOk",{n:r.sent})); }catch(e){ pushMsg(t("pushFail",{e:e.message})); } }
+  else alertOut(t("tTest"),t("mTest"));
+};
+$("oauthBtn").onclick=()=>{
+  const portal=$("portal").value.trim().replace(/\/$/,"");
+  const url=portal+"/login.html?client_id=TISBMamaTracker&access_type=0x100&activation_time=0&duration=0&flags=0x1&redirect_uri="+encodeURIComponent(portal+"/post_token.html");
+  const w=window.open(url,"cparklogin","width=480,height=640"); if(!w) location.href=url;
+};
+window.addEventListener("message",e=>{
+  const m=e.data; if(typeof m!=="string"||m.indexOf("access_token=")<0) return;
+  const tok=(m.match(/access_token=([^&]+)/)||[])[1]; if(!tok) return;
+  S.token=tok; save(); $("token").value=tok; flash(t("fSigned"));
+});
+$("token").addEventListener("change",()=>{ const m=$("token").value.match(/access_token=([^&\s]+)/); if(m) $("token").value=m[1]; });
+(()=>{ const m=(location.search+location.hash).match(/access_token=([^&]+)/); if(m){ S.token=m[1]; save(); try{history.replaceState(null,"",location.pathname)}catch(e){} } })();
+
+$("armBtn").onclick=arm; $("demoBtn").onclick=runDemo; $("fitBtn").onclick=fitAll;
+
+/* ---------- boot ---------- */
+applyLang(); drawStops(); render(); fitAll(); applyMapLang();
+if(S.token) connect(); else { setStatus("off","stNot"); setTimeout(openSheet,400); }
+setInterval(()=>{ drawStops(); if(bus&&!demo){ refreshEta(false).then(()=>{ checkAlerts([bus.lat,bus.lng],(Date.now()/1000-bus.t)/60); render(); }); } else render(); },30000);
+})();
+</script>
+</body>
+</html>
